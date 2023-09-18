@@ -12,4 +12,9 @@ export class CoursesService {
   findAll(): Course[] {
     return this.courses;
   }
+
+  findOne(id: number): Course {
+    return this.courses.find(course => course.id === id);
+  }
+  
 }

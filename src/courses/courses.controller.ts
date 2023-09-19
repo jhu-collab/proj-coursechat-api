@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
   Put,
   Query,
@@ -11,6 +12,8 @@ import {
 import { CoursesService } from './courses.service';
 import { Course } from './course.interface';
 import { CreateCourseDTO } from './create-course.dto';
+import { UpdateCourseDTO } from './update-course.dto';
+import { UpdateCoursePartialDTO } from './update-course-partial.dto';
 
 @Controller('courses')
 export class CoursesController {
@@ -39,10 +42,18 @@ export class CoursesController {
 
   @Put(':id')
   update(
-    @Param('id') id: string,
-    @Body() updatedCourse: Partial<Course>,
+    @Param('id') id: number,
+    @Body() updateCourseDto: UpdateCourseDTO,
   ): Course {
-    return this.coursesService.update(Number(id), updatedCourse);
+    return this.coursesService.update(id, updateCourseDto);
+  }
+
+  @Patch(':id')
+  updatePartial(
+    @Param('id') id: number,
+    @Body() updateCoursePartialDto: UpdateCoursePartialDTO,
+  ): Course {
+    return this.coursesService.updatePartial(id, updateCoursePartialDto);
   }
 
   @Delete(':id')

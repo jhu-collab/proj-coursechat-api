@@ -1,6 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Course } from './course.interface';
 import { CreateCourseDTO } from './create-course.dto';
+import { UpdateCourseDTO } from './update-course.dto';
+import { UpdateCoursePartialDTO } from './update-course-partial.dto';
 
 @Injectable()
 export class CoursesService {
@@ -41,14 +43,29 @@ export class CoursesService {
     return newCourse;
   }
 
-  update(id: number, updatedCourse: Partial<Course>): Course {
+  update(id: number, updateCourseDto: UpdateCourseDTO): Course {
     const courseIndex = this.courses.findIndex((course) => course.id === id);
     if (courseIndex === -1) {
       throw new NotFoundException(`Course with ID ${id} not found`);
     }
     this.courses[courseIndex] = {
       ...this.courses[courseIndex],
-      ...updatedCourse,
+      ...updateCourseDto,
+    };
+    return this.courses[courseIndex];
+  }
+
+  updatePartial(
+    id: number,
+    updateCoursePartialDto: UpdateCoursePartialDTO,
+  ): Course {
+    const courseIndex = this.courses.findIndex((course) => course.id === id);
+    if (courseIndex === -1) {
+      throw new NotFoundException(`Course with ID ${id} not found`);
+    }
+    this.courses[courseIndex] = {
+      ...this.courses[courseIndex],
+      ...updateCoursePartialDto,
     };
     return this.courses[courseIndex];
   }

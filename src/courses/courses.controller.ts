@@ -6,6 +6,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
 } from '@nestjs/common';
 import { CoursesService } from './courses.service';
 import { Course } from './course.interface';
@@ -16,8 +17,14 @@ export class CoursesController {
   constructor(private coursesService: CoursesService) {}
 
   @Get()
-  findAll(): Course[] {
-    return this.coursesService.findAll();
+  findAll(
+    @Query('search') search?: string,
+    @Query('limit') limit?: string,
+    @Query('offset') offset?: string,
+  ): Course[] {
+    const parsedLimit = limit ? Number(limit) : undefined;
+    const parsedOffset = offset ? Number(offset) : undefined;
+    return this.coursesService.findAll(search, parsedLimit, parsedOffset);
   }
 
   @Get(':id')

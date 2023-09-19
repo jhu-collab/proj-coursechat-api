@@ -10,8 +10,22 @@ export class CoursesService {
     { id: 3, title: 'Database Integration' },
   ];
 
-  findAll(): Course[] {
-    return this.courses;
+  findAll(search?: string, limit?: number, offset?: number): Course[] {
+    let results = this.courses;
+
+    if (search) {
+      results = results.filter((course) => course.title.includes(search));
+    }
+
+    if (offset !== undefined && limit !== undefined) {
+      results = results.slice(offset, offset + limit);
+    } else if (offset !== undefined) {
+      results = results.slice(offset);
+    } else if (limit !== undefined) {
+      results = results.slice(0, limit);
+    }
+
+    return results;
   }
 
   findOne(id: number): Course {

@@ -1,6 +1,6 @@
 import { IsString } from 'class-validator';
 
-export class UpdateCoursePartialDTO {
+export class UpdateChatPartialDTO {
   @IsString()
   title?: string;
 }

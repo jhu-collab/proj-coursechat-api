@@ -1,4 +1,4 @@
-export interface Course {
+export interface Chat {
   id: number;
   title: string;
 }

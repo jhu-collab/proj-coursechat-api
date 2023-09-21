@@ -9,52 +9,58 @@ import {
   Put,
   Query,
 } from '@nestjs/common';
-import { ChatService } from './chats.service';
-import { Chat } from './chat.interface';
+import { ChatsService } from './chats.service';
+import { Chat } from './chat.entity';
 import { CreateChatDTO } from './create-chat.dto';
 import { UpdateChatDTO } from './update-chat.dto';
 import { UpdateChatPartialDTO } from './update-chat-partial.dto';
 
 @Controller('chats')
-export class ChatController {
-  constructor(private chatService: ChatService) {}
+export class ChatsController {
+  constructor(private chatService: ChatsService) {}
 
   @Get()
-  findAll(
+  async findAll(
     @Query('search') search?: string,
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
-  ): Chat[] {
+  ): Promise<Chat[]> {
     const parsedLimit = limit ? Number(limit) : undefined;
     const parsedOffset = offset ? Number(offset) : undefined;
-    return this.chatService.findAll(search, parsedLimit, parsedOffset);
+    return await this.chatService.findAll(search, parsedLimit, parsedOffset);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string): Chat {
-    return this.chatService.findOne(Number(id));
+  async findOne(@Param('id') id: string): Promise<Chat> {
+    return await this.chatService.findOne(Number(id));
   }
 
   @Post()
-  create(@Body() createChatDto: CreateChatDTO): Chat {
-    return this.chatService.create(createChatDto);
+  async create(@Body() createChatDto: CreateChatDTO): Promise<Chat> {
+    return await this.chatService.create(createChatDto);
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() updateChatDto: UpdateChatDTO): Chat {
-    return this.chatService.update(Number(id), updateChatDto);
+  async update(
+    @Param('id') id: string,
+    @Body() updateChatDto: UpdateChatDTO,
+  ): Promise<Chat> {
+    return await this.chatService.update(Number(id), updateChatDto);
   }
 
   @Patch(':id')
-  updatePartial(
+  async updatePartial(
     @Param('id') id: string,
     @Body() updateChatPartialDto: UpdateChatPartialDTO,
-  ): Chat {
-    return this.chatService.updatePartial(Number(id), updateChatPartialDto);
+  ): Promise<Chat> {
+    return await this.chatService.updatePartial(
+      Number(id),
+      updateChatPartialDto,
+    );
   }
 
   @Delete(':id')
-  delete(@Param('id') id: string): void {
-    this.chatService.delete(Number(id));
+  async delete(@Param('id') id: string): Promise<void> {
+    await this.chatService.delete(Number(id));
   }
 }

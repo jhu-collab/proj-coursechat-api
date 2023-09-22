@@ -1,11 +1,14 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { ChatsController } from './chat/chats.controller';
-import { ChatsService } from './chat/chats.service';
+import { ChatController } from './chat/chat.controller';
+import { ChatService } from './chat/chat.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Chat } from './chat/chat.entity';
+import { MessageService } from './message/message.service';
+import { MessageController } from './message/message.controller';
+import { Message } from './message/message.entity';
 
 @Module({
   imports: [
@@ -24,9 +27,9 @@ import { Chat } from './chat/chat.entity';
       }),
       inject: [ConfigService],
     }),
-    TypeOrmModule.forFeature([Chat]),
+    TypeOrmModule.forFeature([Chat, Message]),
   ],
-  controllers: [AppController, ChatsController],
-  providers: [AppService, ChatsService],
+  controllers: [AppController, ChatController, MessageController],
+  providers: [AppService, ChatService, MessageService],
 })
 export class AppModule {}

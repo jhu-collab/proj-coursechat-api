@@ -7,7 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 @Injectable()
-export class ChatsService {
+export class ChatService {
   constructor(
     @InjectRepository(Chat) private chatRepository: Repository<Chat>,
   ) {}
@@ -35,7 +35,7 @@ export class ChatsService {
   }
 
   async findOne(id: number): Promise<Chat> {
-    const chat = await this.chatRepository.findOneBy({ id: id });
+    const chat = await this.chatRepository.findOneBy({ id });
     if (!chat) {
       throw new NotFoundException(`Chat with ID ${id} not found`);
     }
@@ -57,8 +57,13 @@ export class ChatsService {
     id: number,
     updateChatPartialDto: UpdateChatPartialDTO,
   ): Promise<Chat> {
-    await this.update(id, updateChatPartialDto as UpdateChatDTO);
-    return this.findOne(id);
+    const chat = await this.findOne(id);
+    for (const key of Object.keys(updateChatPartialDto)) {
+      if (updateChatPartialDto[key] !== undefined) {
+        chat[key] = updateChatPartialDto[key];
+      }
+    }
+    return await this.chatRepository.save(chat);
   }
 
   async delete(id: number): Promise<void> {

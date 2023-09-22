@@ -9,15 +9,15 @@ import {
   Put,
   Query,
 } from '@nestjs/common';
-import { ChatsService } from './chats.service';
+import { ChatService } from './chat.service';
 import { Chat } from './chat.entity';
 import { CreateChatDTO } from './create-chat.dto';
 import { UpdateChatDTO } from './update-chat.dto';
 import { UpdateChatPartialDTO } from './update-chat-partial.dto';
 
 @Controller('chats')
-export class ChatsController {
-  constructor(private chatService: ChatsService) {}
+export class ChatController {
+  constructor(private chatService: ChatService) {}
 
   @Get()
   async findAll(

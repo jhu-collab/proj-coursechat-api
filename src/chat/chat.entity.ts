@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Message } from 'src/message/message.entity';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 
 @Entity('chats')
 export class Chat {
@@ -8,5 +9,6 @@ export class Chat {
   @Column({ length: 500 })
   title: string;
 
-  // ... any other fields you may want to add later
+  @OneToMany(() => Message, (message) => message.chat)
+  messages: Message[];
 }

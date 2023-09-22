@@ -11,9 +11,9 @@ import {
 } from '@nestjs/common';
 import { MessageService } from './message.service';
 import { Message } from './message.entity';
-import { CreateMessageDTO } from './create-message.dto';
+import { CreateMessageDTO } from './dto/create-message.dto';
 import { UpdateMessageDTO } from './update-message.dto';
-import { UpdateMessagePartialDTO } from './update-message-partial';
+import { UpdateMessagePartialDTO } from './dto/update-message-partial.dto';
 
 @Controller('chats/:chatId/messages')
 export class MessageController {

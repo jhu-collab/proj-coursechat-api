@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Chat } from './chat.entity';
-import { CreateChatDTO } from './create-chat.dto';
+import { CreateChatDTO } from './dto/create-chat.dto';
 import { UpdateChatDTO } from './update-chat.dto';
 import { UpdateChatPartialDTO } from './update-chat-partial.dto';
 import { InjectRepository } from '@nestjs/typeorm';

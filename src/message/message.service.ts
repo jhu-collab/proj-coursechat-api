@@ -2,9 +2,9 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Message } from './message.entity';
-import { UpdateMessagePartialDTO } from './update-message-partial';
+import { UpdateMessagePartialDTO } from './dto/update-message-partial.dto';
 import { UpdateMessageDTO } from './update-message.dto';
-import { CreateMessageDTO } from './create-message.dto';
+import { CreateMessageDTO } from './dto/create-message.dto';
 
 @Injectable()
 export class MessageService {

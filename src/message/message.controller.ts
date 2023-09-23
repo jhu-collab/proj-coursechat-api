@@ -12,7 +12,7 @@ import {
 import { MessageService } from './message.service';
 import { Message } from './message.entity';
 import { CreateMessageDTO } from './dto/create-message.dto';
-import { UpdateMessageDTO } from './update-message.dto';
+import { UpdateMessageDTO } from './dto/update-message.dto';
 import { UpdateMessagePartialDTO } from './dto/update-message-partial.dto';
 
 @Controller('chats/:chatId/messages')

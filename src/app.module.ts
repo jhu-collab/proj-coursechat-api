@@ -9,6 +9,9 @@ import { Chat } from './chat/chat.entity';
 import { MessageService } from './message/message.service';
 import { MessageController } from './message/message.controller';
 import { Message } from './message/message.entity';
+import { ApiKeyService } from './api-key/api-key.service';
+import { ApiKeyController } from './api-key/api-key.controller';
+import { ApiKey } from './api-key/api-key.entity';
 
 @Module({
   imports: [
@@ -27,9 +30,14 @@ import { Message } from './message/message.entity';
       }),
       inject: [ConfigService],
     }),
-    TypeOrmModule.forFeature([Chat, Message]),
+    TypeOrmModule.forFeature([Chat, Message, ApiKey]),
   ],
-  controllers: [AppController, ChatController, MessageController],
-  providers: [AppService, ChatService, MessageService],
+  controllers: [
+    AppController,
+    ChatController,
+    MessageController,
+    ApiKeyController,
+  ],
+  providers: [AppService, ChatService, MessageService, ApiKeyService],
 })
 export class AppModule {}

@@ -8,14 +8,18 @@ import {
   Post,
   Put,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { Chat } from './chat.entity';
 import { CreateChatDTO } from './dto/create-chat.dto';
 import { UpdateChatDTO } from './dto/update-chat.dto';
 import { UpdateChatPartialDTO } from './dto/update-chat-partial.dto';
+import { ApiKey } from 'src/decorators/api-key.decorator';
+import { ApiKeyGuard } from 'src/guards/api-key.guard';
 
 @Controller('chats')
+@UseGuards(ApiKeyGuard)
 export class ChatController {
   constructor(private chatService: ChatService) {}
 
@@ -36,8 +40,14 @@ export class ChatController {
   }
 
   @Post()
-  async create(@Body() createChatDto: CreateChatDTO): Promise<Chat> {
-    return await this.chatService.create(createChatDto);
+  async create(
+    @Body() createChatDto: Omit<CreateChatDTO, 'apiKeyId'>,
+    @ApiKey() apiKey: string,
+  ): Promise<Chat> {
+    return await this.chatService.create({
+      ...createChatDto,
+      apiKeyId: apiKey,
+    });
   }
 
   @Put(':id')

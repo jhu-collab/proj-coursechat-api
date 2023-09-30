@@ -1,5 +1,16 @@
 import { Message } from 'src/message/message.entity';
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { ApiKey } from 'src/api-key/api-key.entity';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToMany,
+  ManyToOne,
+  CreateDateColumn,
+  UpdateDateColumn,
+  JoinColumn,
+} from 'typeorm';
+import { Assistant } from 'src/assistant/assistant.entity';
 
 @Entity('chats')
 export class Chat {
@@ -9,6 +20,22 @@ export class Chat {
   @Column({ length: 500 })
   title: string;
 
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+
   @OneToMany(() => Message, (message) => message.chat)
   messages: Message[];
+
+  @ManyToOne(() => ApiKey, (apiKey) => apiKey.chats, { eager: true })
+  apiKey: ApiKey;
+
+  @ManyToOne(() => Assistant, (assistant) => assistant.chats)
+  @JoinColumn({ name: 'assistantName' })
+  assistant: Assistant;
+
+  @Column()
+  assistantName: string;
 }

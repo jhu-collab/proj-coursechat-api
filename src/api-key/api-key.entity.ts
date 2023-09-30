@@ -1,9 +1,11 @@
+import { Chat } from 'src/chat/chat.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
 
 @Entity('api_keys')
@@ -28,4 +30,7 @@ export class ApiKey {
 
   @Column({ type: 'boolean', default: false })
   isDeleted: boolean;
+
+  @OneToMany(() => Chat, (chat) => chat.apiKey)
+  chats: Chat[];
 }

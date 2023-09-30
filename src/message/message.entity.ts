@@ -6,6 +6,7 @@ import {
   ManyToOne,
   CreateDateColumn,
   JoinColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
 @Entity('messages')
@@ -24,12 +25,15 @@ export class Message {
   role: string;
 
   @CreateDateColumn()
-  timestamp: Date;
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 
   @ManyToOne(() => Chat, (chat) => chat.messages, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'chatId' }) // This specifies the column name for the foreign key
+  @JoinColumn({ name: 'chatId' })
   chat: Chat;
 
   @Column()

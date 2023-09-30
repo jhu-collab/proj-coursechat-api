@@ -1,4 +1,4 @@
 import { UpdateApiKeyDTO } from './update-api-key.dto';
 
-// UpdateAPIKeyPartialDTO (same as UpdateAPIKeyDTO for now)
+// UpdateApiKeyPartialDTO (same as UpdateApiKeyDTO for now)
 export class UpdateApiKeyPartialDTO extends UpdateApiKeyDTO {}

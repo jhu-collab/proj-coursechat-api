@@ -48,6 +48,16 @@ export class ApiKeyService {
     return apiKey;
   }
 
+  async validateApiKey(apiKey: string): Promise<boolean> {
+    const foundApiKey = await this.apiKeyRepository.findOneBy({
+      key: apiKey,
+      isDeleted: false,
+      isActive: true,
+    });
+
+    return !!foundApiKey;
+  }
+
   async create(createApiKeyDto: CreateApiKeyDTO): Promise<ApiKey> {
     // Generate a random API key
     const generatedKey = crypto.randomBytes(32).toString('hex');

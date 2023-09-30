@@ -8,14 +8,17 @@ import {
   Put,
   Patch,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { MessageService } from './message.service';
 import { Message } from './message.entity';
 import { CreateMessageDTO } from './dto/create-message.dto';
 import { UpdateMessageDTO } from './dto/update-message.dto';
 import { UpdateMessagePartialDTO } from './dto/update-message-partial.dto';
+import { ApiKeyGuard } from 'src/guards/api-key.guard';
 
 @Controller('chats/:chatId/messages')
+@UseGuards(ApiKeyGuard)
 export class MessageController {
   constructor(private readonly messageService: MessageService) {}
 

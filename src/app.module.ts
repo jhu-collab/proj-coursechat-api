@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ChatController } from './chat/chat.controller';
@@ -12,6 +12,10 @@ import { Message } from './message/message.entity';
 import { ApiKeyService } from './api-key/api-key.service';
 import { ApiKeyController } from './api-key/api-key.controller';
 import { ApiKey } from './api-key/api-key.entity';
+import { AssistantService } from './assistant/assistant.service';
+import { AssistantController } from './assistant/assistant.controller';
+import { Assistant } from './assistant/assistant.entity';
+import { ExtractApiKeyMiddleware } from './middleware/extract-api-key.middleware';
 
 @Module({
   imports: [
@@ -30,14 +34,32 @@ import { ApiKey } from './api-key/api-key.entity';
       }),
       inject: [ConfigService],
     }),
-    TypeOrmModule.forFeature([Chat, Message, ApiKey]),
+    TypeOrmModule.forFeature([Chat, Message, ApiKey, Assistant]),
   ],
   controllers: [
     AppController,
     ChatController,
     MessageController,
     ApiKeyController,
+    AssistantController,
   ],
-  providers: [AppService, ChatService, MessageService, ApiKeyService],
+  providers: [
+    AppService,
+    ChatService,
+    MessageService,
+    ApiKeyService,
+    AssistantService,
+  ],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(ExtractApiKeyMiddleware)
+      .forRoutes(
+        { path: '/chats', method: RequestMethod.ALL },
+        { path: '/chats/*', method: RequestMethod.ALL },
+        { path: '/messages', method: RequestMethod.ALL },
+        { path: '/messages/*', method: RequestMethod.ALL },
+      );
+  }
+}

@@ -1,4 +1,9 @@
-import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
+import {
+  MiddlewareConsumer,
+  Module,
+  RequestMethod,
+} from '@nestjs/common';
+import { CacheModule } from '@nestjs/cache-manager';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ChatController } from './chat/chat.controller';
@@ -16,9 +21,15 @@ import { AssistantService } from './assistant/assistant.service';
 import { AssistantController } from './assistant/assistant.controller';
 import { Assistant } from './assistant/assistant.entity';
 import { ExtractApiKeyMiddleware } from './middleware/extract-api-key.middleware';
+import { AssistantModule } from './assistant/assistant.module';
 
 @Module({
   imports: [
+    CacheModule.register({
+      ttl: 5, // seconds
+      max: 10, // maximum number of items in cache
+    }),
+    AssistantModule,
     ConfigModule.forRoot(), // Load the .env file
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],

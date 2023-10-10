@@ -1,8 +1,4 @@
-import {
-  MiddlewareConsumer,
-  Module,
-  RequestMethod,
-} from '@nestjs/common';
+import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
 import { CacheModule } from '@nestjs/cache-manager';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -22,6 +18,8 @@ import { AssistantController } from './assistant/assistant.controller';
 import { Assistant } from './assistant/assistant.entity';
 import { ExtractApiKeyMiddleware } from './middleware/extract-api-key.middleware';
 import { AssistantModule } from './assistant/assistant.module';
+import { ConversationService } from './conversation/conversation.service';
+import { ConversationController } from './conversation/conversation.controller';
 
 @Module({
   imports: [
@@ -53,6 +51,7 @@ import { AssistantModule } from './assistant/assistant.module';
     MessageController,
     ApiKeyController,
     AssistantController,
+    ConversationController,
   ],
   providers: [
     AppService,
@@ -60,6 +59,7 @@ import { AssistantModule } from './assistant/assistant.module';
     MessageService,
     ApiKeyService,
     AssistantService,
+    ConversationService,
   ],
 })
 export class AppModule {
@@ -71,6 +71,8 @@ export class AppModule {
         { path: '/chats/*', method: RequestMethod.ALL },
         { path: '/messages', method: RequestMethod.ALL },
         { path: '/messages/*', method: RequestMethod.ALL },
+        { path: '/conversations', method: RequestMethod.ALL },
+        { path: '/conversations/*', method: RequestMethod.ALL },
       );
   }
 }

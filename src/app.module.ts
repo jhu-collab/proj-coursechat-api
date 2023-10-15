@@ -67,6 +67,10 @@ export class AppModule {
     consumer
       .apply(ExtractApiKeyMiddleware)
       .forRoutes(
+        { path: '/api-keys', method: RequestMethod.ALL },
+        { path: '/api-keys/*', method: RequestMethod.ALL },
+        { path: '/assistants', method: RequestMethod.ALL },
+        { path: '/assistants/*', method: RequestMethod.ALL },
         { path: '/chats', method: RequestMethod.ALL },
         { path: '/chats/*', method: RequestMethod.ALL },
         { path: '/messages', method: RequestMethod.ALL },

@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   PrimaryColumn,
+  DeleteDateColumn,
 } from 'typeorm';
 import { Chat } from 'src/chat/chat.entity';
 
@@ -24,4 +25,10 @@ export class Assistant {
 
   @OneToMany(() => Chat, (chat) => chat.assistant)
   chats: Chat[];
+
+  @Column({ type: 'boolean', default: true })
+  isActive: boolean;
+
+  @DeleteDateColumn()
+  deletedAt?: Date; // soft delete
 }

@@ -2,6 +2,7 @@ import {
   Injectable,
   Inject,
   InternalServerErrorException,
+  NotFoundException,
 } from '@nestjs/common';
 import { ChatService } from 'src/chat/chat.service';
 import { MessageService } from 'src/message/message.service';
@@ -11,7 +12,7 @@ import { ConversationResponseDTO } from './dto/conversation-response.dto';
 import { ContinueConversationDTO } from './dto/continue-conversation.dto';
 import { Cache } from 'cache-manager';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Message } from 'src/message/message.entity';
+import { Message, MessageRoles } from 'src/message/message.entity';
 import { Chat } from 'src/chat/chat.entity';
 
 @Injectable()
@@ -23,35 +24,42 @@ export class ConversationService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
-  async getAllConversations(limit: number, offset: number): Promise<Chat[]> {
-    return this.chatService.findAll(undefined, limit, offset);
+  async getAllConversations(
+    search?: string,
+    limit?: number,
+    offset?: number,
+    apiKeyId?: number,
+  ): Promise<Chat[]> {
+    return this.chatService.findAll(search, limit, offset, apiKeyId);
   }
 
   async getAllMessagesInConversation(
     chatId: number,
+    search?: string,
     limit?: number,
     offset?: number,
+    apiKeyId?: number,
   ): Promise<Message[]> {
-    return this.messageService.findAll(chatId, limit, offset);
+    await this.chatService.findOne(chatId, apiKeyId); // throws NotFoundException if not found
+    return this.messageService.findAll(chatId, search, limit, offset);
   }
 
   async startConversation(
+    apiKeyId: number,
     startConversationDto: StartConversationDTO,
   ): Promise<ConversationResponseDTO> {
     try {
       const { message, ...createChatDto } = startConversationDto;
-      const chat = await this.chatService.create({
-        ...createChatDto,
-      });
+      const chat = await this.chatService.create(apiKeyId, createChatDto);
 
       await this.messageService.create(chat.id, {
         content: message,
-        role: 'user',
+        role: MessageRoles.USER,
       });
 
       // Generate response using the associated assistant
       const response = await this.assistantManagerService.generateResponse(
-        startConversationDto.assistantName,
+        chat.assistantName,
         message,
       );
 
@@ -64,7 +72,7 @@ export class ConversationService {
       // Save the AI's response as a new message linked to the same chat
       await this.messageService.create(chat.id, {
         content: response,
-        role: 'assistant',
+        role: MessageRoles.ASSISTANT,
       });
 
       return {
@@ -82,34 +90,35 @@ export class ConversationService {
   async continueConversation(
     chatId: number,
     continueConversationDto: ContinueConversationDTO,
+    apiKeyId?: number,
   ): Promise<ConversationResponseDTO> {
+    // Try to get the chat from cache
+    const chatCacheKey = `chat_${chatId}`;
+    let chat = await this.cacheManager.get<Chat>(chatCacheKey);
+
+    if (!chat) {
+      chat = await this.chatService.findOne(chatId, apiKeyId); // throws NotFoundException if not found
+      // Store the fetched chat in cache with an expiration time (60 minutes)
+      await this.cacheManager.set(chatCacheKey, chat, 3600);
+    } else if (apiKeyId) {
+      if (chat.apiKeyId !== apiKeyId) {
+        throw new NotFoundException(
+          `Chat with ID ${chatId} not found for API Key ${apiKeyId}`,
+        );
+      }
+    }
+
     const { message } = continueConversationDto;
 
     try {
       await this.messageService.create(chatId, {
         content: message,
-        role: 'user',
+        role: MessageRoles.USER,
       });
-
-      // Check if assistantName is in the cache
-      let assistantName = await this.cacheManager.get<string>(
-        `chat-${chatId}-assistantName`,
-      );
-
-      // If not in the cache, fetch from the database and store in the cache
-      if (!assistantName) {
-        const chat = await this.chatService.findOne(chatId);
-        assistantName = chat.assistantName;
-        await this.cacheManager.set(
-          `chat-${chatId}-assistantName`,
-          assistantName,
-          3600, // cache for 1 hour, adjust as needed
-        );
-      }
 
       // Generate response using the associated assistant
       const response = await this.assistantManagerService.generateResponse(
-        assistantName,
+        chat.assistantName,
         message,
       );
 
@@ -122,7 +131,7 @@ export class ConversationService {
       // Save the AI's response as a new message linked to the same chat
       await this.messageService.create(chatId, {
         content: response,
-        role: 'assistant',
+        role: MessageRoles.ASSISTANT,
       });
 
       return {
@@ -140,13 +149,18 @@ export class ConversationService {
   async updateConversationTitle(
     chatId: number,
     newTitle: string,
+    apiKeyId?: number,
   ): Promise<Chat> {
-    return this.chatService.updatePartial(chatId, {
-      title: newTitle,
-    });
+    return this.chatService.update(
+      chatId,
+      {
+        title: newTitle,
+      },
+      apiKeyId,
+    );
   }
 
-  async deleteConversation(chatId: number): Promise<void> {
-    await this.chatService.delete(chatId);
+  async deleteConversation(chatId: number, apiKeyId?: number): Promise<void> {
+    await this.chatService.delete(chatId, apiKeyId);
   }
 }

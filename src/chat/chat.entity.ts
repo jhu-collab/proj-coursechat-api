@@ -9,6 +9,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   JoinColumn,
+  Index,
 } from 'typeorm';
 import { Assistant } from 'src/assistant/assistant.entity';
 
@@ -29,7 +30,12 @@ export class Chat {
   @OneToMany(() => Message, (message) => message.chat)
   messages: Message[];
 
-  @ManyToOne(() => ApiKey, (apiKey) => apiKey.chats, { eager: true })
+  @Index()
+  @Column()
+  apiKeyId: number;
+
+  @ManyToOne(() => ApiKey, (apiKey) => apiKey.chats)
+  @JoinColumn({ name: 'apiKeyId' })
   apiKey: ApiKey;
 
   @ManyToOne(() => Assistant, (assistant) => assistant.chats)

@@ -1,10 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ApiKey } from './api-key.entity';
+import { ApiKey, AppRoles } from './api-key.entity';
 import { CreateApiKeyDTO } from './dto/create-api-key.dto';
 import { UpdateApiKeyDTO } from './dto/update-api-key.dto';
-import { UpdateApiKeyPartialDTO } from './dto/update-api-key-partial.dto';
 import * as crypto from 'crypto';
 
 @Injectable()
@@ -18,13 +17,12 @@ export class ApiKeyService {
     search?: string,
     limit?: number,
     offset?: number,
+    withDeleted?: boolean,
   ): Promise<ApiKey[]> {
     const queryBuilder = this.apiKeyRepository.createQueryBuilder('api');
 
-    queryBuilder.where('api.isDeleted = :isDeleted', { isDeleted: false });
-
     if (search) {
-      queryBuilder.andWhere('api.description LIKE :search', {
+      queryBuilder.where('api.description ILIKE :search', {
         search: `%${search}%`,
       });
     }
@@ -37,22 +35,50 @@ export class ApiKeyService {
       queryBuilder.offset(offset);
     }
 
+    if (withDeleted) {
+      queryBuilder.withDeleted();
+    }
+
     return await queryBuilder.getMany();
   }
 
   async findOne(id: number): Promise<ApiKey> {
-    const apiKey = await this.apiKeyRepository.findOneBy({ id });
-    if (!apiKey || apiKey.isDeleted) {
+    const foundApiKey = await this.apiKeyRepository.findOne({
+      where: {
+        id: id,
+      },
+      withDeleted: false,
+    });
+    if (!foundApiKey) {
       throw new NotFoundException(`API Key with ID ${id} not found`);
     }
-    return apiKey;
+    return foundApiKey;
   }
 
-  async validateApiKey(apiKey: string): Promise<boolean> {
-    const foundApiKey = await this.apiKeyRepository.findOneBy({
-      key: apiKey,
-      isDeleted: false,
-      isActive: true,
+  async findByRole(role: AppRoles): Promise<ApiKey | undefined> {
+    return await this.apiKeyRepository.findOneBy({ role });
+  }
+
+  async findByKey(key: string): Promise<ApiKey | undefined> {
+    const foundApiKey = await this.apiKeyRepository.findOne({
+      where: {
+        apiKeyValue: key,
+      },
+      withDeleted: false,
+    });
+    if (!foundApiKey) {
+      throw new NotFoundException(`API Key ${key} not found`);
+    }
+    return foundApiKey;
+  }
+
+  async validateApiKey(key: string): Promise<boolean> {
+    const foundApiKey = await this.apiKeyRepository.findOne({
+      where: {
+        apiKeyValue: key,
+        isActive: true,
+      },
+      withDeleted: false,
     });
 
     return !!foundApiKey;
@@ -65,34 +91,24 @@ export class ApiKeyService {
     // Assign the generated key and other fields from DTO to our entity
     const apiKey = this.apiKeyRepository.create({
       ...createApiKeyDto,
-      key: generatedKey,
+      apiKeyValue: generatedKey,
     });
 
     return await this.apiKeyRepository.save(apiKey);
   }
 
   async update(id: number, updateApiKeyDto: UpdateApiKeyDTO): Promise<ApiKey> {
-    const apiKey = await this.findOne(id);
-    Object.assign(apiKey, updateApiKeyDto);
-    return await this.apiKeyRepository.save(apiKey);
-  }
-
-  async updatePartial(
-    id: number,
-    updateApiKeyPartialDto: UpdateApiKeyPartialDTO,
-  ): Promise<ApiKey> {
-    const apiKey = await this.findOne(id);
-    for (const key of Object.keys(updateApiKeyPartialDto)) {
-      if (updateApiKeyPartialDto[key] !== undefined) {
-        apiKey[key] = updateApiKeyPartialDto[key];
+    const apiKey = await this.findOne(id); // throws NotFoundException if not found
+    for (const key of Object.keys(updateApiKeyDto)) {
+      if (updateApiKeyDto[key] !== undefined) {
+        apiKey[key] = updateApiKeyDto[key];
       }
     }
     return await this.apiKeyRepository.save(apiKey);
   }
 
   async delete(id: number): Promise<void> {
-    const apiKey = await this.findOne(id);
-    apiKey.isDeleted = true;
-    await this.apiKeyRepository.save(apiKey);
+    const apiKey = await this.findOne(id); // throws NotFoundException if not found
+    await this.apiKeyRepository.softRemove(apiKey);
   }
 }

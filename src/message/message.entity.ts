@@ -7,7 +7,15 @@ import {
   CreateDateColumn,
   JoinColumn,
   UpdateDateColumn,
+  Index,
 } from 'typeorm';
+
+export enum MessageRoles {
+  SYSTEM = 'system',
+  USER = 'user',
+  ASSISTANT = 'assistant',
+  FUNCTION = 'function',
+}
 
 @Entity('messages')
 export class Message {
@@ -19,8 +27,8 @@ export class Message {
 
   @Column({
     type: 'enum',
-    enum: ['system', 'user', 'assistant', 'function'],
-    default: 'user',
+    enum: MessageRoles,
+    default: MessageRoles.USER,
   })
   role: string;
 
@@ -36,6 +44,7 @@ export class Message {
   @JoinColumn({ name: 'chatId' })
   chat: Chat;
 
+  @Index()
   @Column()
   chatId: number;
 }

@@ -1,4 +1,5 @@
 import { IsString, IsEnum, IsNotEmpty } from 'class-validator';
+import { MessageRoles } from '../message.entity';
 
 export class CreateMessageDTO {
   @IsNotEmpty()
@@ -6,6 +7,6 @@ export class CreateMessageDTO {
   content: string;
 
   @IsNotEmpty()
-  @IsEnum(['system', 'user', 'assistant', 'function'])
+  @IsEnum(MessageRoles)
   role: string;
 }

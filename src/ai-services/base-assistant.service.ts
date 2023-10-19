@@ -1,6 +1,6 @@
 export abstract class BaseAssistantService {
-  protected abstract modelName: string;
-
+  abstract readonly modelName: string;
+  abstract readonly description: string;
   // Define other shared properties and methods here
 
   // Shared Method Example

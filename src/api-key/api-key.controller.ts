@@ -6,61 +6,64 @@ import {
   Param,
   Delete,
   Put,
-  Patch,
   Query,
+  UseGuards,
+  ParseIntPipe,
+  ParseBoolPipe,
 } from '@nestjs/common';
 import { ApiKeyService } from './api-key.service';
-import { ApiKey } from './api-key.entity';
+import { ApiKey, AppRoles } from './api-key.entity';
 import { CreateApiKeyDTO } from './dto/create-api-key.dto';
 import { UpdateApiKeyDTO } from './dto/update-api-key.dto';
-import { UpdateApiKeyPartialDTO } from './dto/update-api-key-partial.dto';
+import { Roles } from 'src/decorators/roles.decorator';
+import { ApiKeyGuard } from 'src/guards/api-key.guard';
+import { RolesGuard } from 'src/guards/roles.guard';
 
 @Controller('api-keys')
+@UseGuards(ApiKeyGuard, RolesGuard)
 export class ApiKeyController {
   constructor(private readonly apiKeyService: ApiKeyService) {}
 
   @Get()
+  @Roles(AppRoles.ADMIN)
   async findAll(
     @Query('search') search?: string,
-    @Query('limit') limit?: string,
-    @Query('offset') offset?: string,
+    @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
+    @Query('offset', new ParseIntPipe({ optional: true })) offset?: number,
+    @Query('withDeleted', new ParseBoolPipe({ optional: true }))
+    withDeleted?: boolean,
   ): Promise<ApiKey[]> {
-    const parsedLimit = limit ? Number(limit) : undefined;
-    const parsedOffset = offset ? Number(offset) : undefined;
-    return await this.apiKeyService.findAll(search, parsedLimit, parsedOffset);
+    return await this.apiKeyService.findAll(search, limit, offset, withDeleted);
   }
 
   @Get(':apiKeyId')
-  async findOne(@Param('apiKeyId') apiKeyId: string): Promise<ApiKey> {
-    return this.apiKeyService.findOne(Number(apiKeyId));
+  @Roles(AppRoles.ADMIN)
+  async findOne(
+    @Param('apiKeyId', new ParseIntPipe()) apiKeyId: number,
+  ): Promise<ApiKey> {
+    return this.apiKeyService.findOne(apiKeyId);
   }
 
   @Post()
+  @Roles(AppRoles.ADMIN)
   async create(@Body() createApiKeyDto: CreateApiKeyDTO): Promise<ApiKey> {
     return this.apiKeyService.create(createApiKeyDto);
   }
 
   @Put(':apiKeyId')
+  @Roles(AppRoles.ADMIN)
   async update(
-    @Param('apiKeyId') apiKeyId: string,
+    @Param('apiKeyId', new ParseIntPipe()) apiKeyId: number,
     @Body() updateApiKeyDto: UpdateApiKeyDTO,
   ): Promise<ApiKey> {
     return this.apiKeyService.update(Number(apiKeyId), updateApiKeyDto);
   }
 
-  @Patch(':apiKeyId')
-  async updatePartial(
-    @Param('apiKeyId') apiKeyId: string,
-    @Body() updateApiKeyPartialDto: UpdateApiKeyPartialDTO,
-  ): Promise<ApiKey> {
-    return this.apiKeyService.updatePartial(
-      Number(apiKeyId),
-      updateApiKeyPartialDto,
-    );
-  }
-
   @Delete(':apiKeyId')
-  async delete(@Param('apiKeyId') apiKeyId: string): Promise<void> {
-    return this.apiKeyService.delete(Number(apiKeyId));
+  @Roles(AppRoles.ADMIN)
+  async delete(
+    @Param('apiKeyId', new ParseIntPipe()) apiKeyId: number,
+  ): Promise<void> {
+    return this.apiKeyService.delete(apiKeyId);
   }
 }

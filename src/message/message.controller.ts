@@ -6,71 +6,67 @@ import {
   Param,
   Delete,
   Put,
-  Patch,
   Query,
   UseGuards,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { MessageService } from './message.service';
 import { Message } from './message.entity';
 import { CreateMessageDTO } from './dto/create-message.dto';
 import { UpdateMessageDTO } from './dto/update-message.dto';
-import { UpdateMessagePartialDTO } from './dto/update-message-partial.dto';
 import { ApiKeyGuard } from 'src/guards/api-key.guard';
+import { AppRoles } from 'src/api-key/api-key.entity';
+import { Roles } from 'src/decorators/roles.decorator';
+import { RolesGuard } from 'src/guards/roles.guard';
+import { ChatIdGuard } from 'src/guards/chat-id.guard';
 
 @Controller('chats/:chatId/messages')
-@UseGuards(ApiKeyGuard)
+@UseGuards(ApiKeyGuard, RolesGuard, ChatIdGuard)
 export class MessageController {
   constructor(private readonly messageService: MessageService) {}
 
   @Get()
+  @Roles(AppRoles.ADMIN)
   async findAll(
-    @Param('chatId') chatId: string,
-    @Query('limit') limit?: string,
-    @Query('offset') offset?: string,
+    @Param('chatId', new ParseIntPipe()) chatId: number,
+    @Query('search') search?: string,
+    @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
+    @Query('offset', new ParseIntPipe({ optional: true })) offset?: number,
   ): Promise<Message[]> {
-    const parsedLimit = limit ? Number(limit) : undefined;
-    const parsedOffset = offset ? Number(offset) : undefined;
-    return await this.messageService.findAll(
-      Number(chatId),
-      parsedLimit,
-      parsedOffset,
-    );
+    return await this.messageService.findAll(chatId, search, limit, offset);
   }
 
   @Get(':messageId')
-  async findOne(@Param('messageId') messageId: string): Promise<Message> {
+  @Roles(AppRoles.ADMIN)
+  async findOne(
+    @Param('messageId', new ParseIntPipe()) messageId: number,
+  ): Promise<Message> {
     return this.messageService.findOne(Number(messageId));
   }
 
   @Post()
+  @Roles(AppRoles.ADMIN)
   async create(
-    @Param('chatId') chatId: string,
+    @Param('chatId', new ParseIntPipe()) chatId: number,
     @Body() createMessageDto: CreateMessageDTO,
   ): Promise<Message> {
-    return this.messageService.create(Number(chatId), createMessageDto);
+    return this.messageService.create(chatId, createMessageDto);
   }
 
   @Put(':messageId')
+  @Roles(AppRoles.ADMIN)
   async update(
-    @Param('messageId') messageId: string,
+    @Param('messageId', new ParseIntPipe()) messageId: number,
     @Body() updateMessageDto: UpdateMessageDTO,
   ): Promise<Message> {
-    return this.messageService.update(Number(messageId), updateMessageDto);
-  }
-
-  @Patch(':messageId')
-  async updatePartial(
-    @Param('messageId') messageId: string,
-    @Body() updateMessagePartialDto: UpdateMessagePartialDTO,
-  ): Promise<Message> {
-    return await this.messageService.updatePartial(
-      Number(messageId),
-      updateMessagePartialDto,
-    );
+    return this.messageService.update(messageId, updateMessageDto);
   }
 
   @Delete(':messageId')
-  async delete(@Param('messageId') messageId: string): Promise<void> {
-    return this.messageService.delete(Number(messageId));
+  @Roles(AppRoles.ADMIN)
+  async delete(
+    @Param('messageId', new ParseIntPipe()) messageId: number,
+  ): Promise<void> {
+    return this.messageService.delete(messageId);
   }
 }

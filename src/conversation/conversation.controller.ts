@@ -4,88 +4,113 @@ import {
   Post,
   Body,
   Param,
-  Delete,
   Patch,
   Query,
   UseGuards,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { ConversationService } from './conversation.service';
 import { StartConversationDTO } from './dto/start-conversation.dto';
 import { ContinueConversationDTO } from './dto/continue-conversation.dto';
 import { ApiKeyGuard } from 'src/guards/api-key.guard';
-import { ApiKey } from 'src/decorators/api-key.decorator';
+import { ApiKeyEntity } from 'src/decorators/api-key.decorator';
 import { Message } from 'src/message/message.entity';
 import { Chat } from 'src/chat/chat.entity';
 import { ConversationResponseDTO } from './dto/conversation-response.dto';
+import { Roles } from 'src/decorators/roles.decorator';
+import { ApiKey, AppRoles } from 'src/api-key/api-key.entity';
+import { RolesGuard } from 'src/guards/roles.guard';
 
 @Controller('conversations')
-@UseGuards(ApiKeyGuard)
+@UseGuards(ApiKeyGuard, RolesGuard)
 export class ConversationController {
   constructor(private readonly conversationService: ConversationService) {}
 
+  // Fetch all conversations for an API key or all conversations for ADMIN
   @Get()
-  async findAll(
-    @Query('limit') limit?: string,
-    @Query('offset') offset?: string,
+  @Roles(AppRoles.ADMIN, AppRoles.CLIENT)
+  async findAllConversation(
+    @ApiKeyEntity() apiKey: ApiKey,
+    @Query('search') search?: string,
+    @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
+    @Query('offset', new ParseIntPipe({ optional: true })) offset?: number,
   ): Promise<Chat[]> {
-    const parsedLimit = limit ? Number(limit) : undefined;
-    const parsedOffset = offset ? Number(offset) : undefined;
-    return await this.conversationService.getAllConversations(
-      parsedLimit,
-      parsedOffset,
+    // set the apiKeyId to undefined for ADMIN to get all conversations
+    const apiKeyId = apiKey.role === AppRoles.CLIENT ? apiKey.id : undefined;
+
+    return this.conversationService.getAllConversations(
+      search,
+      limit,
+      offset,
+      apiKeyId,
     );
   }
 
+  // Retrieve all messages within a specific conversation
   @Get(':chatId/messages')
-  async findOne(
-    @Param('chatId') chatId: string,
-    @Query('limit') limit?: string,
-    @Query('offset') offset?: string,
+  @Roles(AppRoles.ADMIN, AppRoles.CLIENT)
+  async findAllMessagesInOneConversation(
+    @ApiKeyEntity() apiKey: ApiKey,
+    @Param('chatId', new ParseIntPipe()) chatId: number,
+    @Query('search') search?: string,
+    @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
+    @Query('offset', new ParseIntPipe({ optional: true })) offset?: number,
   ): Promise<Message[]> {
-    const parsedLimit = limit ? Number(limit) : undefined;
-    const parsedOffset = offset ? Number(offset) : undefined;
+    // set the apiKeyId to undefined for ADMIN to get all conversations
+    const apiKeyId = apiKey.role === AppRoles.CLIENT ? apiKey.id : undefined;
     return this.conversationService.getAllMessagesInConversation(
-      Number(chatId),
-      parsedLimit,
-      parsedOffset,
+      chatId,
+      search,
+      limit,
+      offset,
+      apiKeyId,
     );
   }
 
+  // Initiate a new conversation and get the initial AI response
   @Post('start')
-  async create(
-    @Body() startConversationDto: Omit<StartConversationDTO, 'apiKeyId'>,
-    @ApiKey() apiKey: string,
+  @Roles(AppRoles.ADMIN, AppRoles.CLIENT)
+  async startNewConversation(
+    @Body() startConversationDto: StartConversationDTO,
+    @ApiKeyEntity() apiKey: ApiKey,
   ): Promise<ConversationResponseDTO> {
-    return this.conversationService.startConversation({
-      ...startConversationDto,
-      apiKeyId: apiKey,
-    });
+    return this.conversationService.startConversation(
+      apiKey.id,
+      startConversationDto,
+    );
   }
 
+  // Continue an existing conversation by adding a user message and getting the AI response
   @Post(':chatId/continue')
-  async update(
-    @Param('chatId') chatId: string,
+  @Roles(AppRoles.ADMIN, AppRoles.CLIENT)
+  async continueConversation(
+    @ApiKeyEntity() apiKey: ApiKey,
+    @Param('chatId', new ParseIntPipe()) chatId: number,
     @Body() continueConversationDto: ContinueConversationDTO,
   ): Promise<ConversationResponseDTO> {
+    // set the apiKeyId to undefined for ADMIN to get all conversations
+    const apiKeyId = apiKey.role === AppRoles.CLIENT ? apiKey.id : undefined;
     return this.conversationService.continueConversation(
-      Number(chatId),
+      chatId,
       continueConversationDto,
+      apiKeyId,
     );
   }
 
+  // Update the title of a specific conversation
   @Patch(':chatId/title')
-  async updatePartial(
-    @Param('chatId') chatId: string,
+  @Roles(AppRoles.ADMIN, AppRoles.CLIENT)
+  async updateConversationTitle(
+    @ApiKeyEntity() apiKey: ApiKey,
+    @Param('chatId', new ParseIntPipe()) chatId: number,
     @Body('title') title: string,
   ): Promise<Chat> {
-    return await this.conversationService.updateConversationTitle(
-      Number(chatId),
+    // set the apiKeyId to undefined for ADMIN to get all conversations
+    const apiKeyId = apiKey.role === AppRoles.CLIENT ? apiKey.id : undefined;
+    return this.conversationService.updateConversationTitle(
+      chatId,
       title,
+      apiKeyId,
     );
-  }
-
-  @Delete(':chatId')
-  async delete(@Param('chatId') chatId: string): Promise<void> {
-    return this.conversationService.deleteConversation(Number(chatId));
   }
 }

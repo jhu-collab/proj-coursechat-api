@@ -4,73 +4,72 @@ import {
   Delete,
   Get,
   Param,
-  Patch,
+  ParseIntPipe,
   Post,
   Put,
   Query,
   UseGuards,
+  Logger,
 } from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { Chat } from './chat.entity';
 import { CreateChatDTO } from './dto/create-chat.dto';
 import { UpdateChatDTO } from './dto/update-chat.dto';
-import { UpdateChatPartialDTO } from './dto/update-chat-partial.dto';
-import { ApiKey } from 'src/decorators/api-key.decorator';
+import { ApiKeyEntity } from 'src/decorators/api-key.decorator';
 import { ApiKeyGuard } from 'src/guards/api-key.guard';
+import { RolesGuard } from 'src/guards/roles.guard';
+import { Roles } from 'src/decorators/roles.decorator';
+import { ApiKey, AppRoles } from 'src/api-key/api-key.entity';
+
+const logger = new Logger('ChatController');
 
 @Controller('chats')
-@UseGuards(ApiKeyGuard)
+@UseGuards(ApiKeyGuard, RolesGuard)
 export class ChatController {
   constructor(private chatService: ChatService) {}
 
   @Get()
+  @Roles(AppRoles.ADMIN)
   async findAll(
     @Query('search') search?: string,
-    @Query('limit') limit?: string,
-    @Query('offset') offset?: string,
+    @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
+    @Query('offset', new ParseIntPipe({ optional: true })) offset?: number,
   ): Promise<Chat[]> {
-    const parsedLimit = limit ? Number(limit) : undefined;
-    const parsedOffset = offset ? Number(offset) : undefined;
-    return await this.chatService.findAll(search, parsedLimit, parsedOffset);
+    return await this.chatService.findAll(search, limit, offset);
   }
 
-  @Get(':id')
-  async findOne(@Param('id') id: string): Promise<Chat> {
-    return await this.chatService.findOne(Number(id));
+  @Get(':chatId')
+  @Roles(AppRoles.ADMIN)
+  async findOne(
+    @Param('chatId', new ParseIntPipe({ optional: true })) chatId: number,
+  ): Promise<Chat> {
+    return await this.chatService.findOne(chatId);
   }
 
   @Post()
+  @Roles(AppRoles.ADMIN)
   async create(
-    @Body() createChatDto: Omit<CreateChatDTO, 'apiKeyId'>,
-    @ApiKey() apiKey: string,
+    @Body() createChatDto: CreateChatDTO,
+    @ApiKeyEntity() apiKey: ApiKey,
   ): Promise<Chat> {
-    return await this.chatService.create({
-      ...createChatDto,
-      apiKeyId: apiKey,
-    });
+    logger.log(`Creating chat for API Key ${apiKey.id}`);
+    return await this.chatService.create(apiKey.id, createChatDto);
   }
 
-  @Put(':id')
+  @Put(':chatId')
+  @Roles(AppRoles.ADMIN)
   async update(
-    @Param('id') id: string,
+    @Param('chatId', new ParseIntPipe()) chatId: number,
     @Body() updateChatDto: UpdateChatDTO,
   ): Promise<Chat> {
-    return await this.chatService.update(Number(id), updateChatDto);
+    return await this.chatService.update(chatId, updateChatDto);
   }
 
-  @Patch(':id')
-  async updatePartial(
-    @Param('id') id: string,
-    @Body() updateChatPartialDto: UpdateChatPartialDTO,
-  ): Promise<Chat> {
-    return await this.chatService.updatePartial(
-      Number(id),
-      updateChatPartialDto,
-    );
-  }
-
-  @Delete(':id')
-  async delete(@Param('id') id: string): Promise<void> {
-    await this.chatService.delete(Number(id));
+  @Delete(':chatId')
+  @Roles(AppRoles.ADMIN)
+  async delete(
+    @Param('chatId', new ParseIntPipe()) chatId: number,
+  ): Promise<void> {
+    await this.chatService.delete(chatId);
   }
 }

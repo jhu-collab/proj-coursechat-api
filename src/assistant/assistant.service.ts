@@ -1,10 +1,13 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Assistant } from './assistant.entity';
 import { CreateAssistantDTO } from './dto/create-assistant.dto';
 import { UpdateAssistantDTO } from './dto/update-assistant.dto';
-import { UpdateAssistantPartialDTO } from './dto/update-assistant-partial.dto';
 
 @Injectable()
 export class AssistantService {
@@ -17,13 +20,14 @@ export class AssistantService {
     search?: string,
     limit?: number,
     offset?: number,
+    withDeleted?: boolean,
   ): Promise<Assistant[]> {
     const queryBuilder =
       this.assistantRepository.createQueryBuilder('assistant');
 
     if (search) {
       queryBuilder.where(
-        'assistant.name LIKE :search OR assistant.description LIKE :search',
+        'assistant.name ILIKE :search OR assistant.description ILIKE :search',
         { search: `%${search}%` },
       );
     }
@@ -34,6 +38,10 @@ export class AssistantService {
 
     if (offset !== undefined) {
       queryBuilder.offset(offset);
+    }
+
+    if (withDeleted) {
+      queryBuilder.withDeleted();
     }
 
     return await queryBuilder.getMany();
@@ -47,7 +55,19 @@ export class AssistantService {
     return assistant;
   }
 
+  async findOneOrReturnNull(name: string): Promise<Assistant | null> {
+    return await this.assistantRepository.findOneBy({ name });
+  }
+
   async create(createModelDto: CreateAssistantDTO): Promise<Assistant> {
+    const existingAssistant = await this.assistantRepository.findOneBy({
+      name: createModelDto.name,
+    });
+    if (existingAssistant) {
+      throw new ConflictException(
+        `Assistant with name ${createModelDto.name} already exists`,
+      );
+    }
     const assistant = this.assistantRepository.create(createModelDto);
     return await this.assistantRepository.save(assistant);
   }
@@ -56,26 +76,17 @@ export class AssistantService {
     name: string,
     updateAssistantDto: UpdateAssistantDTO,
   ): Promise<Assistant> {
-    const assistant = await this.findOne(name);
-    Object.assign(assistant, updateAssistantDto);
-    return await this.assistantRepository.save(assistant);
-  }
-
-  async updatePartial(
-    name: string,
-    updateAssistantPartialDto: UpdateAssistantPartialDTO,
-  ): Promise<Assistant> {
-    const assistant = await this.findOne(name);
-    for (const key of Object.keys(updateAssistantPartialDto)) {
-      if (updateAssistantPartialDto[key] !== undefined) {
-        assistant[key] = updateAssistantPartialDto[key];
+    const assistant = await this.findOne(name); // throws NotFoundException if not found
+    for (const key of Object.keys(updateAssistantDto)) {
+      if (updateAssistantDto[key] !== undefined) {
+        assistant[key] = updateAssistantDto[key];
       }
     }
     return await this.assistantRepository.save(assistant);
   }
 
   async delete(name: string): Promise<void> {
-    const assistant = await this.findOne(name);
-    await this.assistantRepository.remove(assistant);
+    const assistant = await this.findOne(name); // throws NotFoundException if not found
+    await this.assistantRepository.softRemove(assistant);
   }
 }

@@ -8,11 +8,6 @@ export class StartConversationDTO {
 
   @IsString()
   @IsNotEmpty()
-  @Length(1, 255)
-  apiKeyId: string;
-
-  @IsString()
-  @IsNotEmpty()
   @Length(1, 50)
   assistantName: string;
 

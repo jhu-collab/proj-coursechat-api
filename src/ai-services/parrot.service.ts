@@ -3,5 +3,6 @@ import { BaseAssistantService } from './base-assistant.service';
 
 @Injectable()
 export class ParrotService extends BaseAssistantService {
-  protected modelName = 'Parrot';
+  modelName = 'parrot';
+  description = 'Repeat what you say!';
 }

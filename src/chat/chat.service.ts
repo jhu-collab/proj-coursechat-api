@@ -2,7 +2,6 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Chat } from './chat.entity';
 import { CreateChatDTO } from './dto/create-chat.dto';
 import { UpdateChatDTO } from './dto/update-chat.dto';
-import { UpdateChatPartialDTO } from './dto/update-chat-partial.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -16,11 +15,23 @@ export class ChatService {
     search?: string,
     limit?: number,
     offset?: number,
+    apiKeyId?: number,
   ): Promise<Chat[]> {
     const queryBuilder = this.chatRepository.createQueryBuilder('chat');
+    let hasWhereCondition = false;
 
-    if (search) {
-      queryBuilder.where('chat.title LIKE :search', { search: `%${search}%` });
+    if (search !== undefined) {
+      queryBuilder.where('chat.title ILIKE :search', { search: `%${search}%` });
+      hasWhereCondition = true;
+    }
+
+    if (apiKeyId !== undefined) {
+      if (hasWhereCondition) {
+        queryBuilder.andWhere('chat.apiKeyId = :apiKeyId', { apiKeyId });
+      } else {
+        queryBuilder.where('chat.apiKeyId = :apiKeyId', { apiKeyId });
+        hasWhereCondition = true;
+      }
     }
 
     if (limit !== undefined) {
@@ -34,42 +45,48 @@ export class ChatService {
     return await queryBuilder.getMany();
   }
 
-  async findOne(id: number): Promise<Chat> {
-    const chat = await this.chatRepository.findOneBy({ id });
+  async findOne(chatId: number, apiKeyId?: number): Promise<Chat> {
+    const filter = { id: chatId };
+    if (apiKeyId !== undefined) {
+      filter['apiKeyId'] = apiKeyId;
+    }
+    const chat = await this.chatRepository.findOne({ where: filter });
     if (!chat) {
-      throw new NotFoundException(`Chat with ID ${id} not found`);
+      let message = `Chat with ID ${chatId} not found`;
+      if (apiKeyId !== undefined) {
+        message += ` for the given API Key.`;
+      }
+      throw new NotFoundException(message);
     }
     return chat;
   }
 
-  async create(createChatDto: CreateChatDTO): Promise<Chat> {
-    const chat = this.chatRepository.create(createChatDto);
+  async findOneOrReturnNull(chatId: number): Promise<Chat | null> {
+    return await this.chatRepository.findOneBy({ id: chatId });
+  }
+
+  // pre: apiKeyId is valid
+  async create(apiKeyId: number, createChatDto: CreateChatDTO): Promise<Chat> {
+    const chat = this.chatRepository.create({ ...createChatDto, apiKeyId });
     return await this.chatRepository.save(chat);
   }
 
-  async update(id: number, updateChatDto: UpdateChatDTO): Promise<Chat> {
-    const chat = await this.findOne(id);
-    Object.assign(chat, updateChatDto);
-    return await this.chatRepository.save(chat);
-  }
-
-  async updatePartial(
-    id: number,
-    updateChatPartialDto: UpdateChatPartialDTO,
+  async update(
+    chatId: number,
+    updateChatDto: UpdateChatDTO,
+    apiKeyId?: number,
   ): Promise<Chat> {
-    const chat = await this.findOne(id);
-    for (const key of Object.keys(updateChatPartialDto)) {
-      if (updateChatPartialDto[key] !== undefined) {
-        chat[key] = updateChatPartialDto[key];
+    const chat = await this.findOne(chatId, apiKeyId); // This will throw NotFoundException if not found
+    for (const key of Object.keys(updateChatDto)) {
+      if (updateChatDto[key] !== undefined) {
+        chat[key] = updateChatDto[key];
       }
     }
     return await this.chatRepository.save(chat);
   }
 
-  async delete(id: number): Promise<void> {
-    const result = await this.chatRepository.delete(id);
-    if (result.affected === 0) {
-      throw new NotFoundException(`Chat with ID ${id} not found`);
-    }
+  async delete(chatId: number, apiKeyId?: number): Promise<void> {
+    const chat = await this.findOne(chatId, apiKeyId); // This will throw NotFoundException if not found
+    await this.chatRepository.remove(chat);
   }
 }

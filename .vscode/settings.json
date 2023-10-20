@@ -2,6 +2,8 @@
   "cSpell.words": [
     "coursechat",
     "ILIKE",
+    "nestjs",
+    "postbuild",
     "typeorm"
   ],
   "window.autoDetectColorScheme": true,

@@ -1,3 +1,4 @@
+import { Exclude } from 'class-transformer';
 import { Chat } from 'src/chat/chat.entity';
 import {
   Entity,
@@ -34,9 +35,11 @@ export class ApiKey {
   @Column({ type: 'boolean', default: true })
   isActive: boolean;
 
+  @Exclude()
   @DeleteDateColumn()
-  deletedAt?: Date; // soft delete
+  deletedAt?: Date;
 
+  @Exclude()
   @OneToMany(() => Chat, (chat) => chat.apiKey)
   chats: Chat[];
 

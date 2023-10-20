@@ -12,6 +12,7 @@ import {
   Index,
 } from 'typeorm';
 import { Assistant } from 'src/assistant/assistant.entity';
+import { Exclude } from 'class-transformer';
 
 @Entity('chats')
 export class Chat {
@@ -27,6 +28,7 @@ export class Chat {
   @UpdateDateColumn()
   updatedAt: Date;
 
+  @Exclude()
   @OneToMany(() => Message, (message) => message.chat)
   messages: Message[];
 
@@ -34,10 +36,12 @@ export class Chat {
   @Column()
   apiKeyId: number;
 
+  @Exclude()
   @ManyToOne(() => ApiKey, (apiKey) => apiKey.chats)
   @JoinColumn({ name: 'apiKeyId' })
   apiKey: ApiKey;
 
+  @Exclude()
   @ManyToOne(() => Assistant, (assistant) => assistant.chats)
   @JoinColumn({ name: 'assistantName' })
   assistant: Assistant;

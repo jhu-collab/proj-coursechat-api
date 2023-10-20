@@ -8,6 +8,7 @@ import {
   DeleteDateColumn,
 } from 'typeorm';
 import { Chat } from 'src/chat/chat.entity';
+import { Exclude } from 'class-transformer';
 
 @Entity('assistants')
 export class Assistant {
@@ -29,6 +30,7 @@ export class Assistant {
   @Column({ type: 'boolean', default: true })
   isActive: boolean;
 
+  @Exclude()
   @DeleteDateColumn()
   deletedAt?: Date; // soft delete
 }

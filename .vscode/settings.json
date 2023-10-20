@@ -7,5 +7,5 @@
   "window.autoDetectColorScheme": true,
   "workbench.preferredLightColorTheme": "Nord Light",
   "workbench.preferredDarkColorTheme": "Atom One Dark",
-  "workbench.colorTheme": "Nord Light"
+  "workbench.colorTheme": "Atom One Dark"
 }

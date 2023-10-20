@@ -1,3 +1,4 @@
+import { Exclude } from 'class-transformer';
 import { Chat } from 'src/chat/chat.entity';
 import {
   Entity,
@@ -38,6 +39,7 @@ export class Message {
   @UpdateDateColumn()
   updatedAt: Date;
 
+  @Exclude()
   @ManyToOne(() => Chat, (chat) => chat.messages, {
     onDelete: 'CASCADE',
   })

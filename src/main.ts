@@ -6,6 +6,7 @@ import { HttpResponseInterceptor } from './interceptors/http-response.intercepto
 import helmet from 'helmet';
 import { ApiKeyService } from './api-key/api-key.service';
 import { AppRoles } from './api-key/api-key.entity';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -16,6 +17,38 @@ async function bootstrap() {
   app.useGlobalInterceptors(new HttpResponseInterceptor());
   app.use(helmet());
   app.enableCors();
+
+  // Set up Swagger options
+  const options = new DocumentBuilder()
+    .setTitle('CourseChat API') // Your API title
+    .setDescription(
+      'CourseChat is an interactive platform designed to assist students in comprehending their course material.',
+    )
+    .setVersion('1.0')
+    .addTag(
+      'Health Check',
+      'Default endpoint to check if the API is up and running',
+    )
+    .addTag('Assistants', 'Endpoints related to AI assistants')
+    .addTag(
+      'API Keys',
+      'Endpoints related to API key management 🚫 [Admins Only]',
+    )
+    .addTag('Chats', 'Endpoints related to chat management 🚫 [Admins Only]')
+    .addTag(
+      'Messages',
+      'Endpoints related to message management 🚫 [Admins Only]',
+    )
+    .addTag('Conversations', 'Endpoints related to conversation management')
+    .addSecurity('apiKey', {
+      type: 'apiKey',
+      name: 'x-api-key',
+      in: 'header',
+    })
+    .build();
+
+  const document = SwaggerModule.createDocument(app, options);
+  SwaggerModule.setup('api-docs', app, document); // 'api-docs' is the route to Swagger UI
 
   try {
     const apiKeyService = app.get(ApiKeyService);

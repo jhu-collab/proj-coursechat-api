@@ -1,10 +1,9 @@
-import { IsString, IsNotEmpty, IsNumber } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class ConversationResponseDTO {
-  @IsNumber()
+  @ApiProperty({ description: 'Unique ID of the chat.' })
   chatId: number;
 
-  @IsNotEmpty()
-  @IsString()
+  @ApiProperty({ description: 'Response message.' })
   response: string;
 }

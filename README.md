@@ -21,17 +21,14 @@ To get CourseChat API up and running on your local machine:
 ### Running the app
 
 ```bash
-# development
-$ pnpm run start
-
-# watch mode
+# development with watch mode
 $ pnpm run start:dev
 
 # production mode
-$ pnpm run start:prod
+$ pnpm run start
 ```
 
-**Tip**: Use the watch mode during development. It auto-refreshes upon detecting changes. Access the API at `http://localhost:3000` and view the Swagger UI documentation at `http://localhost:3000/api-docs`.
+**Tip**: During development, access the API at `http://localhost:3000` and view the Swagger UI documentation at `http://localhost:3000/api-docs`.
 
 ### Test
 
@@ -69,7 +66,7 @@ Contributing to CourseChat is simple and rewarding. Here's how you can be a part
 
 - **Merging**: After approval, merge into the target branch. Merges from `dev` to `main` are handled by the team or tech lead.
 
-- **Deployment**: It's automated, thanks to the CI/CD pipeline.
+- **Deployment**: It's automated, thanks to the [cyclic](https://www.cyclic.sh/)'s build pipeline.
 
 Remember, every contribution, big or small, goes a long way in refining CourseChat!
 

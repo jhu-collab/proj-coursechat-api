@@ -1,38 +1,24 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+# CourseChat API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+## Overview
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+CourseChat API serves as the backend for the CourseChat application. It's constructed using [NestJS](https://nestjs.com/), a progressive Node.js framework designed for building efficient, scalable server-side applications. For readers unfamiliar with NestJS, you can delve deeper into its features and capabilities in the [official NestJS documentation](https://docs.nestjs.com/).
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+CourseChat offers an interactive platform tailored to aid students in mastering their course material. Leveraging the prowess of OpenAI's GPT-4 model and augmented by retrieval-generated content specific to courses, CourseChat aims to be a modular platform. With its extensibility, it holds the potential to seamlessly integrate with other educational platforms in the future, enhancing the overall learning experience.
 
-## Installation
+## Running the Application Locally
 
-```bash
-$ pnpm install
-```
+To get CourseChat API up and running on your local machine:
 
-## Running the app
+1. **Prerequisites**: Ensure Git, Node, and PNPM (the new package manager for Node) are installed. Additionally, Docker needs to be set up and running to spin up a local Postgres server. If you're new to Docker, [here's a helpful guide](https://docs.docker.com/get-started/).
+2. **Repository Setup**: Clone the repository and navigate to the root folder in the terminal.
+3. **Dependencies**: Run `pnpm install`.
+4. **Environment Configuration**: Add a `.env` file in the root folder, similar to `.env.example`, and fill in the required environment variables.
+5. **Database Setup**: Run `pnpm docker:up` to initialize the Postgres server.
+
+### Running the app
 
 ```bash
 # development
@@ -45,7 +31,9 @@ $ pnpm run start:dev
 $ pnpm run start:prod
 ```
 
-## Test
+**Tip**: Use the watch mode during development. It auto-refreshes upon detecting changes. Access the API at `http://localhost:3000` and view the Swagger UI documentation at `http://localhost:3000/api-docs`.
+
+### Test
 
 ```bash
 # unit tests
@@ -58,16 +46,37 @@ $ pnpm run test:e2e
 $ pnpm run test:cov
 ```
 
-## Support
+## Contributions
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+Contributing to CourseChat is simple and rewarding. Here's how you can be a part:
 
-## Stay in touch
+- **Identify a Change**: It can be a bug fix or an enhancement.
+  - **Bug Fixes**: Raise a GitHub issue labeled `bug` detailing the issue.
+  - **Enhancements**: Propose new features via a GitHub issue tagged `enhancement`.
+  
+- **Descriptive Titles**: Titles should be clear. For instance, "Fix Bug: API key not validating for `GET /assistants` endpoint" is preferable over a generic "Fix Bug."
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+- **Branch Creation**: 
+  - For bug fixes, branch from the `main` branch.
+  - For enhancements, use the `dev` branch as a base.
+  - Stick to this naming convention for branches: `{author}-{type}-{name}`.
+
+- **Code**: Commit frequently and push to the repository regularly.
+
+- **Pull Request (PR)**: Once you're satisfied, raise a PR. Ensure your branch is up-to-date with the target branch (`main` or `dev`) to minimize conflicts.
+
+- **Review**: Engage in the review process. Address feedback and iterate until your changes are approved.
+
+- **Merging**: After approval, merge into the target branch. Merges from `dev` to `main` are handled by the team or tech lead.
+
+- **Deployment**: It's automated, thanks to the CI/CD pipeline.
+
+Remember, every contribution, big or small, goes a long way in refining CourseChat!
+
+## Contact
+
+For further queries or clarifications related to CourseChat, feel free to reach out to Dr. Ali Madooei at `madooei@jhu.edu`.
 
 ## License
 
-Nest is [MIT licensed](LICENSE).
+CourseChat is currently a private codebase. We have ambitions to transition this project into an open-source application in the future, allowing for broader collaboration and contribution. However, as of now, the distribution, reproduction, or reuse of the code or any part of the application outside of the authorized team is strictly prohibited. All contributors should exercise discretion and uphold this confidentiality to maintain the integrity and security of the project.

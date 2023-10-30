@@ -2,7 +2,10 @@
   "cSpell.words": [
     "coursechat",
     "ILIKE",
+    "langchain",
+    "Nemo",
     "nestjs",
+    "openai",
     "postbuild",
     "typeorm"
   ],

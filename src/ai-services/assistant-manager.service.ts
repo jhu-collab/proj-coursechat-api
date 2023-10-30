@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ParrotService } from './parrot.service';
-import { Gpt3_5TurboService } from './gpt-3.5-turbo.service';
+import { DoryService } from './dory.service';
 import { Gpt4Service } from './gpt-4.service';
 import { BaseAssistantService } from './base-assistant.service';
 import { AssistantService } from 'src/assistant/assistant.service';
@@ -14,14 +14,14 @@ export class AssistantManagerService {
   constructor(
     private readonly assistantService: AssistantService,
     private parrotService: ParrotService,
-    private gpt3_5TurboService: Gpt3_5TurboService,
+    private doryService: DoryService,
     private gpt4Service: Gpt4Service,
   ) {}
 
   async onModuleInit() {
     logger.log('Initializing AssistantManagerService...');
     this.assistants.set('parrot', this.parrotService);
-    this.assistants.set('gpt-3.5-turbo', this.gpt3_5TurboService);
+    this.assistants.set('dory', this.doryService);
     this.assistants.set('gpt-4', this.gpt4Service);
 
     this.synchronizeWithServices();

@@ -17,9 +17,12 @@ import { AssistantService } from './assistant/assistant.service';
 import { AssistantController } from './assistant/assistant.controller';
 import { Assistant } from './assistant/assistant.entity';
 import { ExtractApiKeyMiddleware } from './middleware/extract-api-key.middleware';
-import { AssistantModule } from './assistant/assistant.module';
 import { ConversationService } from './conversation/conversation.service';
 import { ConversationController } from './conversation/conversation.controller';
+import { AssistantManagerService } from './ai-services/assistant-manager.service';
+import { ParrotService } from './ai-services/parrot.service';
+import { DoryService } from './ai-services/dory.service';
+import { Gpt4Service } from './ai-services/gpt-4.service';
 
 @Module({
   imports: [
@@ -27,7 +30,6 @@ import { ConversationController } from './conversation/conversation.controller';
       ttl: 5, // seconds
       max: 10, // maximum number of items in cache
     }),
-    AssistantModule,
     ConfigModule.forRoot(), // Load the .env file
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -60,6 +62,10 @@ import { ConversationController } from './conversation/conversation.controller';
     ApiKeyService,
     AssistantService,
     ConversationService,
+    AssistantManagerService,
+    ParrotService,
+    DoryService,
+    Gpt4Service,
   ],
 })
 export class AppModule {

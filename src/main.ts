@@ -9,7 +9,10 @@ import { AppRoles } from './api-key/api-key.entity';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    // logger: ['error', 'warn', 'log', 'verbose', 'debug'],
+    logger: ['error', 'warn', 'log'],
+  });
   const logger = new Logger('Bootstrap');
 
   app.useGlobalPipes(new ValidationPipe());

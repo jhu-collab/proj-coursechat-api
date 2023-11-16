@@ -77,4 +77,20 @@ export class MessageService {
     const message = await this.findOne(messageId); // throws NotFoundException if not found
     await this.messageRepository.remove(message);
   }
+
+  async getContextForChat(chatId: number): Promise<string[]> {
+    // *get all messages for this chatId
+    const messages = await this.messageRepository.find({
+      where: { chat: { id: chatId } },
+      order: { createdAt: 'ASC' }, // *order by creation date
+    });
+
+    // *return an array of message content
+    return messages.map((message) => message.content);
+  }
+
+  async clearChatHistory(chatId: number): Promise<void> {
+    // *delete all messages for this chatId
+    await this.messageRepository.delete({ chat: { id: chatId } });
+  }
 }

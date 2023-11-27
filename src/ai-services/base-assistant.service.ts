@@ -1,15 +1,15 @@
 export abstract class BaseAssistantService {
   abstract readonly modelName: string;
   abstract readonly description: string;
-  // Define other shared properties and methods here
 
-  // Modified Method
   public async generateResponse(
     input: string,
-    contextMessages: string[], // *New historical context parameter
-    chatId?: number,
+    chatId?: number, // Add optional chatId parameter
   ): Promise<string> {
-    const combinedInput = contextMessages.concat(input).join('\n');
-    return `Response from ${this.modelName} for chatId ${chatId}: ${combinedInput}`; // *Modified response
+    let response = `Response from ${this.modelName}: ${input}`;
+    if (chatId !== undefined) {
+      response += ` for chatId ${chatId}`;
+    }
+    return response;
   }
 }

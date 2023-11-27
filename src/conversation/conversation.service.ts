@@ -61,7 +61,7 @@ export class ConversationService {
       const response = await this.assistantManagerService.generateResponse(
         chat.assistantName,
         message,
-        [], // *New parameter: empty historical context
+        chat.id, // Pass chat.id as chatId
       );
 
       if (!response) {
@@ -111,31 +111,17 @@ export class ConversationService {
 
     const { message } = continueConversationDto;
 
-    // *Check if the user wants to restart the conversation
-    if (message.trim() === 'restart') {
-      // *Clear the chat history with chatId
-      await this.messageService.clearChatHistory(chatId);
-      return {
-        chatId,
-        response: 'Conversation restarted. How can I help you?',
-      };
-    }
-
     try {
       await this.messageService.create(chatId, {
         content: message,
         role: MessageRoles.USER,
       });
 
-      // *Get the historical context for the chat
-      const contextMessages =
-        await this.messageService.getContextForChat(chatId);
-
-      // *Generate response using the associated assistant
+      // Generate response using the associated assistant
       const response = await this.assistantManagerService.generateResponse(
         chat.assistantName,
         message,
-        contextMessages, // *New parameter: historical context
+        chatId,
       );
 
       if (!response) {

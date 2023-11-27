@@ -27,21 +27,20 @@ export class AssistantManagerService {
     this.assistants.set('gpt-4', this.gpt4Service);
     this.assistants.set('bloom', this.bloomService);
 
-    this.synchronizeWithServices();
+    await this.synchronizeWithServices();
     logger.log('Synchronized AI services with the database.');
   }
 
   public async generateResponse(
     assistantName: string,
     input: string,
-    contextMessages: string[], // *New historical context parameter
+    chatId?: number, // Add optional chatId parameter
   ): Promise<string> {
     const service = this.assistants.get(assistantName);
     if (!service) {
       throw new Error(`Unknown assistant: ${assistantName}`);
     }
-    // *Pass the contextMessages to the service
-    return service.generateResponse(input, contextMessages);
+    return service.generateResponse(input, chatId); // Add optional chatId parameter
   }
 
   async synchronizeWithServices(): Promise<void> {

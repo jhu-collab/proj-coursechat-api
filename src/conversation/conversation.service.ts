@@ -61,6 +61,7 @@ export class ConversationService {
       const response = await this.assistantManagerService.generateResponse(
         chat.assistantName,
         message,
+        chat.id, // Pass chat.id as chatId
       );
 
       if (!response) {
@@ -120,6 +121,7 @@ export class ConversationService {
       const response = await this.assistantManagerService.generateResponse(
         chat.assistantName,
         message,
+        chatId,
       );
 
       if (!response) {

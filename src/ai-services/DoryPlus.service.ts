@@ -26,7 +26,7 @@ As an AI assistant, DoryPlus combines the charming and friendly characteristics 
   ): Promise<string> {
     const { ChatOpenAI } = await dynamicImport('langchain/chat_models/openai');
     const { RunnableSequence } = await dynamicImport(
-      'langchain/dist/schema/runnable/base.js',
+      'langchain/schema/runnable',
     );
     const { LLMChain } = await dynamicImport('langchain/chains');
     const { PromptTemplate } = await dynamicImport('langchain/dist/prompts');

@@ -69,7 +69,7 @@ import { DoryPlusService } from './ai-services/DoryPlus.service';
     DoryService,
     Gpt4Service,
     BloomService,
-    DoryPlus,
+    DoryPlusService,
   ],
 })
 export class AppModule {

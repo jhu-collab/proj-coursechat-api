@@ -5,7 +5,7 @@ import { ConversationService } from 'src/conversation/conversation.service';
 import { BaseAssistantService } from './base-assistant.service';
 
 @Injectable()
-export class DoryPlus extends BaseAssistantService {
+export class DoryPlusService extends BaseAssistantService {
   modelName = 'DoryPlus';
   description = `DoryPlus is an advanced AI assistant inspired by the beloved character Dory, a fictional blue tang from the popular animated film series "Finding Nemo". Unlike the original Dory character who is known for her short-term memory loss, DoryPlus is engineered with the capability to remember and reference past conversations. This enhancement allows DoryPlus to provide contextually relevant responses and recall previous interactions, a feature that is particularly useful for ongoing dialogues and complex queries.
 

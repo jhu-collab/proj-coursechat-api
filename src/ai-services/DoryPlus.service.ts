@@ -29,7 +29,7 @@ As an AI assistant, DoryPlus combines the charming and friendly characteristics 
       'langchain/schema/runnable',
     );
     const { LLMChain } = await dynamicImport('langchain/chains');
-    const { PromptTemplate } = await dynamicImport('langchain/dist/prompts');
+    const { PromptTemplate } = await dynamicImport('langchain/prompts');
     const { SystemMessage, HumanMessage } =
         await dynamicImport('langchain/schema');
 

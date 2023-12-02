@@ -105,6 +105,24 @@ export class ConversationController {
   @ApiOperation({
     summary: 'Retrieve all messages within a specific conversation (chat)',
   })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    type: String,
+    description: 'Search query',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Limit for pagination',
+  })
+  @ApiQuery({
+    name: 'offset',
+    required: false,
+    type: Number,
+    description: 'Offset for pagination',
+  })
   @ApiParam({ name: 'chatId', description: 'Chat ID' })
   @ApiOkResponseWithWrapper({
     description: 'List of messages',

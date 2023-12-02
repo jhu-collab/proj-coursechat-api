@@ -24,6 +24,7 @@ import { ParrotService } from './ai-services/parrot.service';
 import { DoryService } from './ai-services/dory.service';
 import { Gpt4Service } from './ai-services/gpt-4.service';
 import { BloomService } from './ai-services/bloom.service';
+import { DoryPlus } from './ai-services/DoryPlus.service';
 
 @Module({
   imports: [
@@ -68,6 +69,7 @@ import { BloomService } from './ai-services/bloom.service';
     DoryService,
     Gpt4Service,
     BloomService,
+    DoryPlus,
   ],
 })
 export class AppModule {

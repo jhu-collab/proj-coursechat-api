@@ -5,8 +5,8 @@ import { ConversationService } from 'src/conversation/conversation.service';
 import { BaseAssistantService } from './base-assistant.service';
 
 @Injectable()
-export class DoryPlus extends BaseAssistantService {
-  modelName = 'DoryPlus';
+export class DoryPlusService extends BaseAssistantService {
+  modelName = 'doryPlus';
   description = `DoryPlus is an advanced AI assistant inspired by the beloved character Dory, a fictional blue tang from the popular animated film series "Finding Nemo". Unlike the original Dory character who is known for her short-term memory loss, DoryPlus is engineered with the capability to remember and reference past conversations. This enhancement allows DoryPlus to provide contextually relevant responses and recall previous interactions, a feature that is particularly useful for ongoing dialogues and complex queries.
 
 As an AI assistant, DoryPlus combines the charming and friendly characteristics of its namesake with advanced memory functions. Whether you're asking about the first question in your conversation, seeking follow-up information, or referencing earlier discussions, DoryPlus is designed to maintain a coherent and continuous interaction history. This stateful approach sets DoryPlus apart from typical AI models and other assistants in the Dory series, offering users a more personalized and engaging conversational experience.\`;
@@ -26,10 +26,10 @@ As an AI assistant, DoryPlus combines the charming and friendly characteristics 
   ): Promise<string> {
     const { ChatOpenAI } = await dynamicImport('langchain/chat_models/openai');
     const { RunnableSequence } = await dynamicImport(
-      'langchain/dist/schema/runnable/base.js',
+      'langchainschema/runnable',
     );
     const { LLMChain } = await dynamicImport('langchain/chains');
-    const { PromptTemplate } = await dynamicImport('langchain/dist/prompts');
+    const { PromptTemplate } = await dynamicImport('langchain/prompts');
     const { SystemMessage, HumanMessage } =
         await dynamicImport('langchain/schema');
 

@@ -8,6 +8,8 @@ import { AssistantService } from 'src/assistant/assistant.service';
 import { ElephantService } from './elephant.service';
 import { MementoService } from './memento.service';
 import { FinchService } from './finch.service';
+import { HashSupabaseService } from './hash-supabase.service';
+import { HashOpenaiService } from './hash-openai.service';
 
 const logger = new Logger('AssistantManagerService');
 
@@ -24,6 +26,8 @@ export class AssistantManagerService {
     private elephantService: ElephantService,
     private mementoService: MementoService,
     private finchService: FinchService,
+    private hashSupabaseService: HashSupabaseService,
+    private hashOpenaiService: HashOpenaiService,
   ) {}
 
   async onModuleInit() {
@@ -35,6 +39,8 @@ export class AssistantManagerService {
     this.assistants.set('elephant', this.elephantService);
     this.assistants.set('memento', this.mementoService);
     this.assistants.set('finch', this.finchService);
+    this.assistants.set('hash-supabase', this.hashSupabaseService);
+    this.assistants.set('hash-openai', this.hashOpenaiService);
 
     await this.synchronizeWithServices();
     logger.log('Synchronized AI services with the database.');

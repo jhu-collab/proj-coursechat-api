@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { AppRoles } from '../api-key.entity';
+import { AppRoles } from './api-key.entity';
 
 export class ApiKeyResponseDTO {
   @ApiProperty({ description: 'The unique identifier of the API key.' })

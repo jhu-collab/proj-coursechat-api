@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, Length, IsOptional, IsEnum } from 'class-validator';
-import { AppRoles } from '../api-key.entity';
+import { AppRoles } from './api-key.entity';
 
 export class CreateApiKeyDTO {
   @ApiProperty({

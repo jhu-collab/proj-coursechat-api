@@ -2,8 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ApiKey, AppRoles } from './api-key.entity';
-import { CreateApiKeyDTO } from './dto/create-api-key.dto';
-import { UpdateApiKeyDTO } from './dto/update-api-key.dto';
+import { CreateApiKeyDTO } from './api-key-create.dto';
+import { UpdateApiKeyDTO } from './api-key-update.dto';
 import * as crypto from 'crypto';
 
 @Injectable()

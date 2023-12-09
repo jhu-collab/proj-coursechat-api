@@ -15,12 +15,12 @@ import {
 } from '@nestjs/common';
 import { ApiKeyService } from './api-key.service';
 import { AppRoles } from './api-key.entity';
-import { CreateApiKeyDTO } from './dto/create-api-key.dto';
-import { UpdateApiKeyDTO } from './dto/update-api-key.dto';
+import { CreateApiKeyDTO } from './api-key-create.dto';
+import { UpdateApiKeyDTO } from './api-key-update.dto';
 import { Roles } from 'src/decorators/roles.decorator';
 import { ApiKeyGuard } from 'src/guards/api-key.guard';
 import { RolesGuard } from 'src/guards/roles.guard';
-import { ApiKeyResponseDTO } from './dto/api-key-response.dto';
+import { ApiKeyResponseDTO } from './api-key-response.dto';
 import {
   ApiTags,
   ApiOperation,

@@ -27,6 +27,7 @@ import { BloomService } from './ai-services/bloom.service';
 import { ElephantService } from './ai-services/elephant.service';
 import { MementoService } from './ai-services/memento.service';
 import { FinchService } from './ai-services/finch.service';
+import { validate } from './env.validation';
 
 @Module({
   imports: [
@@ -34,7 +35,9 @@ import { FinchService } from './ai-services/finch.service';
       ttl: 5, // seconds
       max: 10, // maximum number of items in cache
     }),
-    ConfigModule.forRoot(), // Load the .env file
+    ConfigModule.forRoot({
+      validate, // Validate the .env file
+    }), // Loads the .env file
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({

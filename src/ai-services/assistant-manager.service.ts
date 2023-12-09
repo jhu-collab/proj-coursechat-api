@@ -5,6 +5,9 @@ import { Gpt4Service } from './gpt-4.service';
 import { BloomService } from './bloom.service';
 import { BaseAssistantService } from './base-assistant.service';
 import { AssistantService } from 'src/assistant/assistant.service';
+import { ElephantService } from './elephant.service';
+import { MementoService } from './memento.service';
+import { FinchService } from './finch.service';
 
 const logger = new Logger('AssistantManagerService');
 
@@ -18,6 +21,9 @@ export class AssistantManagerService {
     private doryService: DoryService,
     private gpt4Service: Gpt4Service,
     private bloomService: BloomService,
+    private elephantService: ElephantService,
+    private mementoService: MementoService,
+    private finchService: FinchService,
   ) {}
 
   async onModuleInit() {
@@ -26,6 +32,9 @@ export class AssistantManagerService {
     this.assistants.set('dory', this.doryService);
     this.assistants.set('gpt-4', this.gpt4Service);
     this.assistants.set('bloom', this.bloomService);
+    this.assistants.set('elephant', this.elephantService);
+    this.assistants.set('memento', this.mementoService);
+    this.assistants.set('finch', this.finchService);
 
     await this.synchronizeWithServices();
     logger.log('Synchronized AI services with the database.');

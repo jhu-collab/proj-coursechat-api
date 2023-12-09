@@ -15,7 +15,16 @@ async function bootstrap() {
   });
   const logger = new Logger('Bootstrap');
 
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transformOptions: {
+        enableImplicitConversion: true,
+      },
+    }),
+  );
   app.useGlobalFilters(new HttpResponseFilter());
   app.useGlobalInterceptors(new HttpResponseInterceptor());
   app.use(helmet());

@@ -27,6 +27,9 @@ import { BloomService } from './ai-services/bloom.service';
 import { ElephantService } from './ai-services/elephant.service';
 import { MementoService } from './ai-services/memento.service';
 import { FinchService } from './ai-services/finch.service';
+import {ZebraService} from "./ai-services/zebra.service";
+import {AntService} from "./ai-services/Ant.service";
+import {AntEaterService} from "./ai-services/ant-eater.service";
 
 @Module({
   imports: [
@@ -74,6 +77,9 @@ import { FinchService } from './ai-services/finch.service';
     ElephantService,
     MementoService,
     FinchService,
+    ZebraService,
+    AntService,
+    AntEaterService,
   ],
 })
 export class AppModule {

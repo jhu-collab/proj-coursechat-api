@@ -56,6 +56,7 @@ async function bootstrap() {
   try {
     const apiKeyService = app.get(ApiKeyService);
     const adminKey = await apiKeyService.findByRole(AppRoles.ADMIN);
+    console.log(adminKey.apiKeyValue)
     if (!adminKey) {
       logger.log('No admin API key found. Creating one...');
       await apiKeyService.create({

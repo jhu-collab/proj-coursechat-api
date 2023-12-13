@@ -24,7 +24,7 @@ export class ApiKey {
   apiKeyValue: string;
 
   @Column({ type: 'text', nullable: true })
-  description?: string;
+  description: string;
 
   @CreateDateColumn()
   createdAt: Date;
@@ -37,7 +37,7 @@ export class ApiKey {
 
   @Exclude()
   @DeleteDateColumn()
-  deletedAt?: Date;
+  deletedAt: Date;
 
   @Exclude()
   @OneToMany(() => Chat, (chat) => chat.apiKey)

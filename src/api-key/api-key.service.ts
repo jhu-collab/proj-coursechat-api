@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { ApiKey, AppRoles } from './api-key.entity';
 import { CreateApiKeyDTO } from './api-key-create.dto';
 import { UpdateApiKeyDTO } from './api-key-update.dto';
@@ -14,32 +14,28 @@ export class ApiKeyService {
   ) {}
 
   async findAll(
+    limit: number,
+    offset: number,
     search?: string,
-    limit?: number,
-    offset?: number,
     withDeleted?: boolean,
+    isActive?: boolean,
   ): Promise<ApiKey[]> {
-    const queryBuilder = this.apiKeyRepository.createQueryBuilder('api');
+    const description = search ? ILike(`%${search}%`) : undefined;
 
-    if (search) {
-      queryBuilder.where('api.description ILIKE :search', {
-        search: `%${search}%`,
-      });
-    }
+    const cards = await this.apiKeyRepository.find({
+      take: limit,
+      skip: offset,
+      where: {
+        description: description,
+        isActive: isActive,
+      },
+      order: {
+        createdAt: 'DESC',
+      },
+      withDeleted,
+    });
 
-    if (limit !== undefined) {
-      queryBuilder.limit(limit);
-    }
-
-    if (offset !== undefined) {
-      queryBuilder.offset(offset);
-    }
-
-    if (withDeleted) {
-      queryBuilder.withDeleted();
-    }
-
-    return await queryBuilder.getMany();
+    return cards;
   }
 
   async findOne(id: number): Promise<ApiKey> {

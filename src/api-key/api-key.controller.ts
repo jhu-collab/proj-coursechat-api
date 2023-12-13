@@ -9,12 +9,11 @@ import {
   Query,
   UseGuards,
   ParseIntPipe,
-  ParseBoolPipe,
   UseInterceptors,
   ClassSerializerInterceptor,
 } from '@nestjs/common';
 import { ApiKeyService } from './api-key.service';
-import { AppRoles } from './api-key.entity';
+import { ApiKey, AppRoles } from './api-key.entity';
 import { CreateApiKeyDTO } from './api-key-create.dto';
 import { UpdateApiKeyDTO } from './api-key-update.dto';
 import { Roles } from 'src/decorators/roles.decorator';
@@ -25,13 +24,15 @@ import {
   ApiTags,
   ApiOperation,
   ApiParam,
-  ApiQuery,
   ApiBody,
   ApiResponse,
   ApiSecurity,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { ErrorResponseDTO } from 'src/dto/error-response.dto';
 import { ApiOkResponseWithWrapper } from 'src/decorators/api-ok-response-wrapper.decorator';
+import { FindApiKeysQueryDTO } from './api-key-find-query.dto';
+import { FindApiKeysResponseDTO } from './api-key-find-response.dto';
 
 @ApiTags('API Keys')
 @ApiResponse({
@@ -61,39 +62,34 @@ export class ApiKeyController {
   @Roles(AppRoles.ADMIN)
   @ApiOperation({ summary: 'Retrieve a list of API keys' })
   @ApiQuery({
-    name: 'search',
-    required: false,
-    description: 'Search filter for API keys',
-  })
-  @ApiQuery({
-    name: 'limit',
-    required: false,
-    description: 'Limit the number of results',
-  })
-  @ApiQuery({
-    name: 'offset',
-    required: false,
-    description: 'Offset for pagination',
-  })
-  @ApiQuery({
-    name: 'withDeleted',
-    required: false,
-    description: 'Include soft-deleted API keys',
+    type: FindApiKeysQueryDTO,
   })
   @ApiOkResponseWithWrapper({
-    description: 'List of API keys',
+    description: 'List of API keys along with pagination details and filters',
     status: 200,
-    type: ApiKeyResponseDTO,
-    isArray: true,
+    type: FindApiKeysResponseDTO,
   })
   async findAll(
-    @Query('search') search?: string,
-    @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
-    @Query('offset', new ParseIntPipe({ optional: true })) offset?: number,
-    @Query('withDeleted', new ParseBoolPipe({ optional: true }))
-    withDeleted?: boolean,
-  ): Promise<ApiKeyResponseDTO[]> {
-    return this.apiKeyService.findAll(search, limit, offset, withDeleted);
+    @Query() query: FindApiKeysQueryDTO,
+  ): Promise<FindApiKeysResponseDTO> {
+    const { limit, offset, search, withDeleted, isActive } = query;
+
+    const apiKeys: ApiKey[] = await this.apiKeyService.findAll(
+      limit,
+      offset,
+      search,
+      withDeleted,
+      isActive,
+    );
+
+    return {
+      limit,
+      offset,
+      search,
+      withDeleted,
+      isActive,
+      data: apiKeys,
+    };
   }
 
   @Get(':apiKeyId')

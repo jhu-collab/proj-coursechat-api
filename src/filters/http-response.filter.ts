@@ -1,5 +1,7 @@
-import { Catch, ArgumentsHost, HttpException } from '@nestjs/common';
+import { Catch, ArgumentsHost, HttpException, Logger } from '@nestjs/common';
 import { Response } from 'express';
+
+const logger = new Logger('HttpResponseFilter');
 
 @Catch()
 export class HttpResponseFilter {
@@ -10,17 +12,28 @@ export class HttpResponseFilter {
     const status =
       exception instanceof HttpException ? exception.getStatus() : 500;
 
-    const errorResponse = {
+    let errorResponse = {
       statusCode: status,
       timestamp: new Date().toISOString(),
       path: request.url,
     };
 
     if (exception instanceof HttpException) {
-      errorResponse['message'] = exception.message;
-      errorResponse['error'] = exception.getResponse();
+      const exceptionResponse = exception.getResponse();
+
+      if (typeof exceptionResponse === 'string') {
+        // If the response is a string, set it as the message
+        errorResponse['message'] = exceptionResponse;
+      } else {
+        // If the response is an object, spread it into errorResponse
+        errorResponse = { ...errorResponse, ...exceptionResponse };
+      }
     } else {
       errorResponse['message'] = 'Internal Server Error';
+      if (process.env.NODE_ENV === 'development') {
+        logger.error(exception);
+        errorResponse['error'] = exception.toString();
+      }
     }
 
     response.status(status).json(errorResponse);

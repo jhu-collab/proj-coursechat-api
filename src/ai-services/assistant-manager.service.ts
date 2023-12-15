@@ -8,10 +8,11 @@ import { AssistantService } from 'src/assistant/assistant.service';
 import { ElephantService } from './elephant.service';
 import { MementoService } from './memento.service';
 import { FinchService } from './finch.service';
-import { ZebraService } from "./zebra.service";
-import {AntService} from "./Ant.service";
-import {AntEaterService} from "./ant-eater.service";
-
+import { ZebraService } from './zebra.service';
+import { AntService } from './ant.service';
+import { AntEaterService } from './ant-eater.service';
+import { AntEaterPlusService } from './ant-eaterplus.service';
+import { BadgerService } from './badger.service';
 const logger = new Logger('AssistantManagerService');
 
 @Injectable()
@@ -30,6 +31,8 @@ export class AssistantManagerService {
     private zebraService: ZebraService,
     private antService: AntService,
     private antEaterService: AntEaterService,
+    private antEaterPlusService: AntEaterPlusService,
+    private baderService: BadgerService,
   ) {}
 
   async onModuleInit() {
@@ -44,6 +47,8 @@ export class AssistantManagerService {
     this.assistants.set('zebra', this.zebraService);
     this.assistants.set('ant', this.antService);
     this.assistants.set('antEater', this.antEaterService);
+    this.assistants.set('antEaterPlus', this.antEaterPlusService);
+    this.assistants.set('badger', this.baderService);
 
     await this.synchronizeWithServices();
     logger.log('Synchronized AI services with the database.');

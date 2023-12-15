@@ -27,9 +27,11 @@ import { BloomService } from './ai-services/bloom.service';
 import { ElephantService } from './ai-services/elephant.service';
 import { MementoService } from './ai-services/memento.service';
 import { FinchService } from './ai-services/finch.service';
-import {ZebraService} from "./ai-services/zebra.service";
-import {AntService} from "./ai-services/Ant.service";
-import {AntEaterService} from "./ai-services/ant-eater.service";
+import { ZebraService } from './ai-services/zebra.service';
+import { AntService } from './ai-services/ant.service';
+import { AntEaterService } from './ai-services/ant-eater.service';
+import { AntEaterPlusService } from './ai-services/ant-eaterplus.service';
+import { BadgerService } from './ai-services/badger.service';
 
 @Module({
   imports: [
@@ -80,6 +82,8 @@ import {AntEaterService} from "./ai-services/ant-eater.service";
     ZebraService,
     AntService,
     AntEaterService,
+    AntEaterPlusService,
+    BadgerService,
   ],
 })
 export class AppModule {

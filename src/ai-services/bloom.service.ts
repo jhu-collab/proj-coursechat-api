@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { BaseAssistantService } from './base-assistant.service';
 import { MessageService } from 'src/message/message.service';
 import { dynamicImport } from 'src/utils/dynamic-import.utils';
+import { encode } from 'gpt-tokenizer';
 
 @Injectable()
 export class BloomService extends BaseAssistantService {
@@ -16,17 +17,60 @@ export class BloomService extends BaseAssistantService {
     super();
   }
 
+  private async buildContext(chatId: number): Promise<string> {
+    const tokenLimit = 500;
+    let context = '';
+    const offset = 0;
+
+    const messages = await this.messageService.findAll(
+      chatId,
+      undefined,
+      100,
+      offset,
+    );
+
+    // Build context starting with the latest news
+    for (const message of messages.reverse()) {
+      const formattedMessage = `${
+        message.role === 'user' ? 'User' : 'Assistant'
+      }: ${message.content}`;
+      const newContext = context + '\n' + formattedMessage;
+
+      // Check if token limit reached
+      if (encode(newContext).length > tokenLimit) {
+        context = this.intelligentSummarize(newContext, tokenLimit);
+        break;
+      }
+
+      context = newContext;
+    }
+
+    return context.trim();
+  }
+
+  private intelligentSummarize(context: string, tokenLimit: number): string {
+    const messages = context.split('\n').reverse();
+    let summarizedContext = '';
+    let tokensCount = 0;
+
+    for (const message of messages) {
+      const messageTokens = encode(message);
+      if (tokensCount + messageTokens.length <= tokenLimit) {
+        summarizedContext = message + '\n' + summarizedContext;
+        tokensCount += messageTokens.length;
+      } else {
+        break;
+      }
+    }
+
+    return summarizedContext.trim();
+  }
+
   public async generateResponse(
     input: string,
     chatId: number,
   ): Promise<string> {
-    let context = '';
-    if (chatId) {
-      const messages = await this.messageService.findAll(chatId);
-      context = messages
-        .map((m) => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`)
-        .join('\n');
-    }
+    let context = await this.buildContext(chatId);
 
     const { ChatOpenAI } = await dynamicImport('langchain/chat_models/openai');
     const { LLMChain } = await dynamicImport('langchain/chains');
@@ -47,6 +91,7 @@ export class BloomService extends BaseAssistantService {
         template: `
           You are Bloom, a subversive-minded learning companion. Your job is to employ your theory of mind skills to predict the user's mental state.
           Based on the conversation history and the current input, generate a thought that makes a prediction about the user's needs given current dialogue and also lists other pieces of data that would help improve your prediction. 
+
           Chat History: {context}
           User Input: {input}
           Thought:`,
@@ -77,6 +122,7 @@ export class BloomService extends BaseAssistantService {
         inputVariables: ['context', 'input'],
         template: `
           You are Bloom, a subversive-minded learning companion. Your job is to employ your theory of mind skills to predict the user's next possible statement.
+
           Chat History: {context}
           User's Last Input: {input}
           Predicted Next Statement:`,

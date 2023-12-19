@@ -27,6 +27,8 @@ import { BloomService } from './ai-services/bloom.service';
 import { ElephantService } from './ai-services/elephant.service';
 import { MementoService } from './ai-services/memento.service';
 import { FinchService } from './ai-services/finch.service';
+import { HashSupabaseService } from './ai-services/hash-supabase.service';
+import { HashOpenaiService } from './ai-services/hash-openai.service';
 
 @Module({
   imports: [
@@ -74,6 +76,8 @@ import { FinchService } from './ai-services/finch.service';
     ElephantService,
     MementoService,
     FinchService,
+    HashSupabaseService,
+    HashOpenaiService,
   ],
 })
 export class AppModule {

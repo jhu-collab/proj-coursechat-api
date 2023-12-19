@@ -6,9 +6,10 @@ import { ConfigService } from '@nestjs/config';
 @Injectable()
 export class HashOpenaiService extends BaseAssistantService {
   modelName = 'hash-openai';
-  description = `Data Structures assistant which augments user prompts using openai's assistant in 'retrieval' mode. 
-  This assistant has all lecture notes fed to it as additional context. Under the hood, openai uses retrieval-augmented 
-  generation to generate the response.`;
+  description = `Hash-openai is a data structures assistant which augments user prompts using openai's assistant in 'retrieval' mode. 
+  It has all lecture notes from Dr. Ali Madooei's 601.226 Data structures course fed to it as additional context. Under the hood, openai 
+  uses retrieval-augmented generation to generate the response. Hash-openai is stateless so it treats each incoming query independently. 
+  It is named after the most beloved data structure, the hash map.`;
 
   constructor(private readonly configService: ConfigService) {
     super();
@@ -20,17 +21,23 @@ export class HashOpenaiService extends BaseAssistantService {
       'openai/resources/beta/threads/messages/messages',
     );
 
-    const openai = new OpenAI({
+    // Note: unlike in other files, this constructor is from the openai package, NOT from langchain
+    const model = new OpenAI({
       apiKey: this.configService.get<string>('OPENAI_API_KEY'),
     });
+    // Get the existing openai assistant's id. This assistant already has access to all the lecture notes.
     const assistantId = this.configService.get<string>('OPENAI_ASSISTANT_ID');
-    const thread = await openai.beta.threads.create();
-    await openai.beta.threads.messages.create(thread.id, {
+
+    // Create a thread: every conversation with an openai assistant starts with a thread: https://platform.openai.com/docs/assistants/overview
+    const thread = await model.beta.threads.create();
+
+    // Add a message to the thread
+    await model.beta.threads.messages.create(thread.id, {
       role: 'user',
       content: input,
     });
 
-    const run = await openai.beta.threads.runs.create(thread.id, {
+    const run = await model.beta.threads.runs.create(thread.id, {
       assistant_id: assistantId,
       instructions: `Be as concise as possible in your responses. 
       Convert LaTeX to unformatted text: convert "( \Omicron(\lg n) )" to "O(log n)". Always try
@@ -39,16 +46,17 @@ export class HashOpenaiService extends BaseAssistantService {
       Don't include sources in your response. When asked for specific answer, give the answer first and then an explanation.`,
     });
 
-    // Currently, openai wants us to retrieve the status repeatedly until the run is 'completed'
-    let runStatus = (await openai.beta.threads.runs.retrieve(thread.id, run.id))
+    // Keep polling for the run status every 0.5s until it has 'completed'. Unfortunately, openai doesn't provide a webhook at the moment
+    // Reference: https://platform.openai.com/docs/assistants/overview/step-5-check-the-run-status
+    let runStatus = (await model.beta.threads.runs.retrieve(thread.id, run.id))
       .status;
     while (runStatus !== 'completed') {
       await new Promise((resolve) => setTimeout(resolve, 500));
-      runStatus = (await openai.beta.threads.runs.retrieve(thread.id, run.id))
+      runStatus = (await model.beta.threads.runs.retrieve(thread.id, run.id))
         .status;
     }
-
-    const messagesInThread = await openai.beta.threads.messages.list(thread.id);
+    // Pull out the response from the thread and return it
+    const messagesInThread = await model.beta.threads.messages.list(thread.id);
     const responseTextObject = messagesInThread.data[0]
       .content[0] as typeof MessageContentText;
     return responseTextObject.text.value;

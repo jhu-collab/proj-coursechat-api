@@ -46,8 +46,8 @@ export class AssistantManagerService {
     this.assistants.set('finch', this.finchService);
     this.assistants.set('zebra', this.zebraService);
     this.assistants.set('ant', this.antService);
-    this.assistants.set('antEater', this.antEaterService);
-    this.assistants.set('antEaterPlus', this.antEaterPlusService);
+    this.assistants.set('ant-eater', this.antEaterService);
+    this.assistants.set('ant-eater-plus', this.antEaterPlusService);
     this.assistants.set('badger', this.baderService);
 
     await this.synchronizeWithServices();

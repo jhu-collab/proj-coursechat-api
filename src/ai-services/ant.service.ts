@@ -10,6 +10,7 @@ export class AntService extends BaseAssistantService {
   description = `Ant is an AI assistant that has the ability to summarize conversation history 
 to summarize previous conversations. While also holding a buffer of previous messages`;
 
+  maxToken = 50;
   constructor(
     private readonly configService: ConfigService,
     private readonly messageService: MessageService,
@@ -60,10 +61,10 @@ to summarize previous conversations. While also holding a buffer of previous mes
     });
 
     // Initialize memory with ConversationSummaryBufferMemory
-    const maxToken = 50;
+
     const summaryMemory = new ConversationSummaryBufferMemory({
       llm: model,
-      maxTokenLimit: maxToken,
+      maxTokenLimit: this.maxToken,
       memoryKey: 'conversationSummary',
       inputKey: 'input',
     });
@@ -90,16 +91,11 @@ AI:`);
       llm: model,
       prompt,
       memory,
-      verbose: false,
+      verbose: true,
     });
 
     // Generate response
     const result = await chain.call({ input });
-
-    console.log({
-      res: result.text,
-      memory: await memory.loadMemoryVariables({}),
-    });
 
     return result?.text || 'No response from Ant.';
   }

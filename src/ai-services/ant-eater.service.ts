@@ -1,22 +1,23 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { BaseAssistantService } from './base-assistant.service';
 import { MessageService } from 'src/message/message.service';
 import { dynamicImport } from 'src/utils/dynamic-import.utils';
-import * as Console from 'console';
 import { Message } from '../message/message.entity';
-import { AIMessage } from 'langchain/schema';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 @Injectable()
 export class AntEaterService extends BaseAssistantService {
-  modelName = 'antEater';
+  modelName = 'ant-eater';
   description = `AntEater is an AI assistant that has the ability to summarize conversation history, while also having a buffer of recent conversations 
     and holding a cache of messages so previous messages dont have to be grabbed on every instance.`;
 
-  private chatHistoryCache = new Map<number, Array<any>>();
-
+  cacheReloadTimer = 3600;
+  maxTokenLimit = 50;
   constructor(
     private readonly configService: ConfigService,
     private readonly messageService: MessageService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {
     super();
   }
@@ -32,11 +33,11 @@ export class AntEaterService extends BaseAssistantService {
         pastMessages.push(new AIMessage(m.content));
       }
     });
-    Console.log(typeof pastMessages);
-    this.chatHistoryCache.set(chatId, pastMessages);
-    Console.log('Finished updated');
-    for (let [key, value] of this.chatHistoryCache) {
-    }
+    await this.cacheManager.set(
+      `chatHistory_${chatId}`,
+      pastMessages,
+      this.cacheReloadTimer,
+    );
   }
 
   public async generateResponse(
@@ -54,10 +55,12 @@ export class AntEaterService extends BaseAssistantService {
     const { PromptTemplate } = await dynamicImport('langchain/prompts');
 
     // Retrieve or update chat history from cache
-    if (!this.chatHistoryCache.has(chatId)) {
+    if (!(await this.cacheManager.get(`chatHistory_${chatId}`))) {
       await this.updateChatHistoryCache(chatId);
     }
-    const pastMessages: Message[] = this.chatHistoryCache.get(chatId) || [];
+    const pastMessages: Message[] =
+      (await this.cacheManager.get(`chatHistory_${chatId}`)) || [];
+
     // Initialize OpenAI model
     const model = new OpenAI({
       openAIApiKey: this.configService.get<string>('OPENAI_API_KEY'),
@@ -69,12 +72,12 @@ export class AntEaterService extends BaseAssistantService {
     const bufferMemory = new BufferMemory({
       memoryKey: 'chat_history',
       inputKey: 'input',
-      chatHistory: new ChatMessageHistory(this.chatHistoryCache.get(chatId)),
+      chatHistory: new ChatMessageHistory(pastMessages),
     });
 
     const summaryMemory = new ConversationSummaryMemory({
       llm: model,
-      maxTokenLimit: 50,
+      maxTokenLimit: this.maxTokenLimit,
       memoryKey: 'conversationSummary',
       inputKey: 'input',
     });
@@ -82,7 +85,6 @@ export class AntEaterService extends BaseAssistantService {
     const memory = new CombinedMemory({
       memories: [bufferMemory, summaryMemory],
     });
-    Console.log('Created memory objects');
 
     // Prompt Template
     const prompt =
@@ -94,7 +96,7 @@ Summary of conversation:
 {conversationSummary}
 Current conversation:
 {chat_history}
-Human: {input}
+Input: {input}
 AI:`);
 
     // Create a Langchain chain
@@ -102,28 +104,12 @@ AI:`);
       llm: model,
       prompt,
       memory,
-      verbose: false,
+      verbose: true,
     });
-    Console.log('Before chain call');
 
     // Generate response
 
     const result = await chain.call({ input });
-    Console.log('After chain call');
-
-    console.log({
-      res: result.text,
-      memory: await memory.loadMemoryVariables({}),
-    });
-
-    // Update cache with new input
-    if (chatId) {
-      // Assuming the new message object needs to be constructed here
-      const newMessage = new AIMessage(result.text);
-      Console.log('Before push');
-      this.chatHistoryCache.get(chatId).push(newMessage);
-      Console.log('After Push');
-    }
 
     return result?.text || 'No response from Ant.';
   }

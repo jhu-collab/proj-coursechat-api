@@ -2,15 +2,18 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { BaseAssistantService } from './base-assistant.service';
 import { dynamicImport } from 'src/utils/dynamic-import.utils';
-import * as Console from 'console';
+import { MessageService } from 'src/message/message.service';
 
 @Injectable()
 export class AntEaterPlusService extends BaseAssistantService {
-  modelName = 'antEaterPlus';
-  description = `AntEater is an AI assistant that has the ability to store messages into a vectorDB for retrieval.`;
+  modelName = 'ant-eater-plus';
+  description = `ant-eater-plus is an AI assistant that has the ability to store messages into a vectorDB for retrieval.`;
   chatHistoryEmbedding: any = null;
 
-  constructor(private readonly configService: ConfigService) {
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly messageService: MessageService,
+  ) {
     super();
     this.initializeChatHistoryEmbedding();
   }
@@ -38,8 +41,20 @@ export class AntEaterPlusService extends BaseAssistantService {
     const { OpenAI } = await dynamicImport('langchain/llms/openai');
     const { LLMChain } = await dynamicImport('langchain/chains');
     const { PromptTemplate } = await dynamicImport('langchain/prompts');
-
+    const { HumanMessage } = await dynamicImport('langchain/schema');
     const memory = this.chatHistoryEmbedding;
+
+    const pastMessages = [];
+    if (chatId) {
+      const messages = await this.messageService.findAll(chatId);
+      messages.forEach((m) => {
+        if (m.role === 'user') {
+          pastMessages.push(new HumanMessage(m.content));
+        } else if (m.role === 'assistant') {
+          pastMessages.push(new AIMessage(m.content));
+        }
+      });
+    }
 
     // Initialize OpenAI model
     const model = new OpenAI({
@@ -76,7 +91,6 @@ AI:`);
     const { AIMessage } = await dynamicImport('langchain/schema');
     const newMessage = new AIMessage(result.text);
     await memory.saveContext({ input }, { newMessage });
-    Console.log('After Push');
 
     return result?.text || 'No response from Ant.';
   }

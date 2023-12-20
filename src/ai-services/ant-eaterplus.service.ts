@@ -1,8 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import {Inject, Injectable} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { BaseAssistantService } from './base-assistant.service';
 import { dynamicImport } from 'src/utils/dynamic-import.utils';
 import { MessageService } from 'src/message/message.service';
+import {CACHE_MANAGER} from "@nestjs/cache-manager";
+import {Cache} from "cache-manager";
+import {Message} from "../message/message.entity";
 
 @Injectable()
 export class AntEaterPlusService extends BaseAssistantService {
@@ -10,9 +13,12 @@ export class AntEaterPlusService extends BaseAssistantService {
   description = `ant-eater-plus is an AI assistant that has the ability to store messages into a vectorDB for retrieval.`;
   chatHistoryEmbedding: any = null;
 
+  retrievalNumber = 3;
+  cacheReloadTimer = 3600;
   constructor(
     private readonly configService: ConfigService,
     private readonly messageService: MessageService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {
     super();
     this.initializeChatHistoryEmbedding();
@@ -28,12 +34,31 @@ export class AntEaterPlusService extends BaseAssistantService {
       'langchain/embeddings/openai',
     );
     const vectorStore = new MemoryVectorStore(new OpenAIEmbeddings());
-    const retrievalNumber = 3;
     this.chatHistoryEmbedding = new VectorStoreRetrieverMemory({
-      vectorStoreRetriever: vectorStore.asRetriever(retrievalNumber),
+      vectorStoreRetriever: vectorStore.asRetriever(this.retrievalNumber),
       memoryKey: 'chat_history',
     });
   }
+
+  private async updateChatHistoryCache(chatId: number) {
+    const { HumanMessage, AIMessage } = await dynamicImport('langchain/schema');
+    const pastMessages = [];
+    const messages = await this.messageService.findAll(chatId);
+    messages.forEach((m) => {
+      if (m.role === 'user') {
+        pastMessages.push(new HumanMessage(m.content));
+      } else if (m.role === 'assistant') {
+        pastMessages.push(new AIMessage(m.content));
+      }
+    });
+    await this.cacheManager.set(
+        `chatHistory_${chatId}`,
+        pastMessages,
+        this.cacheReloadTimer,
+    );
+  }
+
+
   public async generateResponse(
     input: string,
     chatId?: number,
@@ -41,20 +66,27 @@ export class AntEaterPlusService extends BaseAssistantService {
     const { OpenAI } = await dynamicImport('langchain/llms/openai');
     const { LLMChain } = await dynamicImport('langchain/chains');
     const { PromptTemplate } = await dynamicImport('langchain/prompts');
-    const { HumanMessage } = await dynamicImport('langchain/schema');
     const memory = this.chatHistoryEmbedding;
 
-    const pastMessages = [];
-    if (chatId) {
-      const messages = await this.messageService.findAll(chatId);
-      messages.forEach((m) => {
-        if (m.role === 'user') {
-          pastMessages.push(new HumanMessage(m.content));
-        } else if (m.role === 'assistant') {
-          pastMessages.push(new AIMessage(m.content));
-        }
-      });
+    // Retrieve or update chat history from cache
+    if (!(await this.cacheManager.get(`chatHistory_${chatId}`))) {
+      await this.updateChatHistoryCache(chatId);
     }
+    const pastMessages: Message[] =
+        (await this.cacheManager.get(`chatHistory_${chatId}`)) || [];
+
+    const halfLength = Math.floor(pastMessages.length / 2);
+    for (let i = 0; i <= halfLength; i += 2) {
+      // Check if both current (i) and next (i+1) messages exist
+      if (i + 1 < pastMessages.length) {
+        await memory.saveContext({ input: pastMessages[i] }, { output: pastMessages[i + 1] });
+      } else if (i < pastMessages.length) {
+        // Handle the case where the array length is odd
+        // Save the last message without a pair
+        await memory.saveContext({ input: pastMessages[i] }, { output: "" });
+      }
+    }
+
 
     // Initialize OpenAI model
     const model = new OpenAI({
@@ -70,10 +102,9 @@ export class AntEaterPlusService extends BaseAssistantService {
 The AI is talkative and provides lots of specific details from its context. 
 If the AI does not know the answer to a question, it truthfully says it does not know.
 
-Summary of conversation:
 Current conversation:
 {chat_history}
-Human: {input}
+Input: {input}
 AI:`);
 
     // Create a Langchain chain
@@ -81,16 +112,12 @@ AI:`);
       llm: model,
       prompt,
       memory,
-      verbose: false,
+      verbose: true,
     });
 
     // Generate response
 
     const result = await chain.call({ input });
-
-    const { AIMessage } = await dynamicImport('langchain/schema');
-    const newMessage = new AIMessage(result.text);
-    await memory.saveContext({ input }, { newMessage });
 
     return result?.text || 'No response from Ant.';
   }

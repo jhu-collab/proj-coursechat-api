@@ -5,13 +5,14 @@ import { dynamicImport } from 'src/utils/dynamic-import.utils';
 import { MessageService } from 'src/message/message.service';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
-import { Message } from '../message/message.entity';
+import { type PoolConfig } from 'pg';
+import { PGVectorStore } from 'langchain/dist/vectorstores/pgvector';
 
 @Injectable()
-export class AntEaterPlusService extends BaseAssistantService {
-  modelName = 'ant-eater-plus';
-  description = `antEaterPlus is an AI assistant that has the ability to store messages into a vectorDB for retrieval. This is a basecase implementation that doesnt interact with the Database for storing these embeddings.`;
-  chatHistoryEmbedding: any = null;
+export class ArmadilloService extends BaseAssistantService {
+  modelName = 'armadillo';
+  description = `Armadillo is an AI assistant that has the ability to store messages into a vectorDB for retrieval. While caching these augmented vector storages`;
+  chatHistoryEmbedding: PGVectorStore = null;
 
   retrievalNumber = 3;
   cacheReloadTimer = 3600;
@@ -21,41 +22,55 @@ export class AntEaterPlusService extends BaseAssistantService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {
     super();
-    this.initializeChatHistoryEmbedding();
   }
 
   public async initializeChatHistoryEmbedding() {
-    const { MemoryVectorStore } = await dynamicImport(
-      'langchain/vectorstores/memory',
-    );
-    const { VectorStoreRetrieverMemory } =
-      await dynamicImport('langchain/memory');
     const { OpenAIEmbeddings } = await dynamicImport(
       'langchain/embeddings/openai',
     );
+    const { PGVectorStore } = await dynamicImport(
+      'langchain/vectorstores/pgvector',
+    );
+    const config = {
+      postgresConnectionOptions: {
+        type: 'postgres',
+        host: this.configService.get<string>('DB_HOST'),
+        port: this.configService.get<string>('DB_PORT'),
+        user: this.configService.get<string>('DB_USER'),
+        password: this.configService.get<string>('DB_PASSWORD'),
+        database: this.configService.get<string>('DB_NAME'),
+      } as PoolConfig,
+      tableName: 'EmbedMessages',
+      columns: {
+        idColumnName: 'id',
+        vectorColumnName: 'embedding',
+        contentColumnName: 'content',
+        metadataColumnName: 'metadata',
+      },
+    };
 
-    const vectorStore = new MemoryVectorStore(new OpenAIEmbeddings());
-    this.chatHistoryEmbedding = new VectorStoreRetrieverMemory({
-      vectorStoreRetriever: vectorStore.asRetriever(this.retrievalNumber),
-      memoryKey: 'chat_history',
-    });
+    this.chatHistoryEmbedding = await PGVectorStore.initialize(
+      new OpenAIEmbeddings(),
+      config,
+    );
   }
 
   private async updateChatHistoryCache(chatId: number) {
-    const { HumanMessage, AIMessage } = await dynamicImport('langchain/schema');
-    const pastMessages = [];
+    await this.initializeChatHistoryEmbedding();
+    const pastMessages: any = [];
     const messages = await this.messageService.findAll(chatId);
     messages.forEach((m) => {
-      if (m.role === 'user') {
-        pastMessages.push(new HumanMessage(m.content));
-      } else if (m.role === 'assistant') {
-        pastMessages.push(new AIMessage(m.content));
-      }
+      const messageDocument = {
+        pageContent: m.content,
+        metadata: { role: m.role },
+      };
+      pastMessages.push(messageDocument);
     });
+    await this.chatHistoryEmbedding.addDocuments(pastMessages);
 
     await this.cacheManager.set(
       `chatHistory_${chatId}`,
-      pastMessages,
+      this.chatHistoryEmbedding,
       this.cacheReloadTimer,
     );
   }
@@ -65,31 +80,14 @@ export class AntEaterPlusService extends BaseAssistantService {
     chatId?: number,
   ): Promise<string> {
     const { OpenAI } = await dynamicImport('langchain/llms/openai');
-    const { LLMChain } = await dynamicImport('langchain/chains');
     const { PromptTemplate } = await dynamicImport('langchain/prompts');
-    const { AIMessage } = await dynamicImport('langchain/schema');
-    const memory = this.chatHistoryEmbedding;
+    const { LLMChain } = await dynamicImport('langchain/chains');
+    const { VectorStoreRetrieverMemory } =
+      await dynamicImport('langchain/memory');
 
     // Retrieve or update chat history from cache
     if (!(await this.cacheManager.get(`chatHistory_${chatId}`))) {
       await this.updateChatHistoryCache(chatId);
-    }
-    const pastMessages: Message[] =
-      (await this.cacheManager.get(`chatHistory_${chatId}`)) || [];
-
-    const halfLength = Math.floor(pastMessages.length / 2);
-    for (let i = 0; i <= halfLength; i += 2) {
-      // Check if both current (i) and next (i+1) messages exist
-      if (i + 1 < pastMessages.length) {
-        await memory.saveContext(
-          { input: pastMessages[i] },
-          { output: pastMessages[i + 1] },
-        );
-      } else if (i < pastMessages.length) {
-        // Handle the case where the array length is odd
-        // Save the last message without a pair
-        await memory.saveContext({ input: pastMessages[i] }, { output: '' });
-      }
     }
 
     // Initialize OpenAI model
@@ -98,6 +96,15 @@ export class AntEaterPlusService extends BaseAssistantService {
       modelName: 'gpt-3.5-turbo-16k',
       temperature: 0,
       streaming: false,
+    });
+
+    const memory = new VectorStoreRetrieverMemory({
+      // 1 is how many documents to return, you might want to return more, eg. 4
+      vectorStoreRetriever: this.chatHistoryEmbedding.asRetriever(
+        this.retrievalNumber,
+        { chatId },
+      ),
+      memoryKey: 'chat_history',
     });
 
     // Prompt Template
@@ -111,7 +118,6 @@ Current conversation:
 Input: {input}
 AI:`);
 
-    // Create a Langchain chain
     const chain = new LLMChain({
       llm: model,
       prompt,
@@ -121,10 +127,17 @@ AI:`);
 
     // Generate response
     const result = await chain.call({ input });
-    pastMessages.push(new AIMessage(result.text));
+
+    await this.chatHistoryEmbedding.addDocuments([
+      {
+        pageContent: result.text,
+        metadata: { role: 'assistant' },
+      },
+    ]);
+
     await this.cacheManager.set(
       `chatHistory_${chatId}`,
-      pastMessages,
+      this.chatHistoryEmbedding,
       this.cacheReloadTimer,
     );
 

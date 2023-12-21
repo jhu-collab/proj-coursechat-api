@@ -12,7 +12,7 @@ import { ZebraService } from './zebra.service';
 import { AntService } from './ant.service';
 import { AntEaterService } from './ant-eater.service';
 import { AntEaterPlusService } from './ant-eater-plus.service';
-import { ArmadilloService } from './armadilloService';
+import { ArmadilloService } from './armadillo.service';
 import { ArmadilloPlusService } from './armadillo-plus.service';
 
 import { BadgerService } from './badger.service';

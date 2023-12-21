@@ -58,7 +58,6 @@ by trying to remember too much.`;
 
     const chain = new ConversationChain({ llm: model, memory: memory });
     const result = await chain.call({ input });
-    console.log(await memory.loadMemoryVariables({}));
 
     return result?.response || 'No response from Elephant bot.';
   }

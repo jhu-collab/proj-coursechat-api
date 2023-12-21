@@ -1,16 +1,16 @@
-import {Inject, Injectable} from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { BaseAssistantService } from './base-assistant.service';
 import { dynamicImport } from 'src/utils/dynamic-import.utils';
 import { MessageService } from 'src/message/message.service';
-import {CACHE_MANAGER} from "@nestjs/cache-manager";
-import {Cache} from "cache-manager";
-import {Message} from "../message/message.entity";
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
+import { Message } from '../message/message.entity';
 
 @Injectable()
 export class AntEaterPlusService extends BaseAssistantService {
   modelName = 'ant-eater-plus';
-  description = `ant-eater-plus is an AI assistant that has the ability to store messages into a vectorDB for retrieval.`;
+  description = `ant-eater-plus is an AI assistant that has the ability to store messages into a vectorDB for retrieval. While caching these augmented vector storages`;
   chatHistoryEmbedding: any = null;
 
   retrievalNumber = 3;
@@ -51,13 +51,13 @@ export class AntEaterPlusService extends BaseAssistantService {
         pastMessages.push(new AIMessage(m.content));
       }
     });
+
     await this.cacheManager.set(
-        `chatHistory_${chatId}`,
-        pastMessages,
-        this.cacheReloadTimer,
+      `chatHistory_${chatId}`,
+      pastMessages,
+      this.cacheReloadTimer,
     );
   }
-
 
   public async generateResponse(
     input: string,
@@ -66,6 +66,7 @@ export class AntEaterPlusService extends BaseAssistantService {
     const { OpenAI } = await dynamicImport('langchain/llms/openai');
     const { LLMChain } = await dynamicImport('langchain/chains');
     const { PromptTemplate } = await dynamicImport('langchain/prompts');
+    const { AIMessage } = await dynamicImport('langchain/schema');
     const memory = this.chatHistoryEmbedding;
 
     // Retrieve or update chat history from cache
@@ -73,20 +74,22 @@ export class AntEaterPlusService extends BaseAssistantService {
       await this.updateChatHistoryCache(chatId);
     }
     const pastMessages: Message[] =
-        (await this.cacheManager.get(`chatHistory_${chatId}`)) || [];
+      (await this.cacheManager.get(`chatHistory_${chatId}`)) || [];
 
     const halfLength = Math.floor(pastMessages.length / 2);
     for (let i = 0; i <= halfLength; i += 2) {
       // Check if both current (i) and next (i+1) messages exist
       if (i + 1 < pastMessages.length) {
-        await memory.saveContext({ input: pastMessages[i] }, { output: pastMessages[i + 1] });
+        await memory.saveContext(
+          { input: pastMessages[i] },
+          { output: pastMessages[i + 1] },
+        );
       } else if (i < pastMessages.length) {
         // Handle the case where the array length is odd
         // Save the last message without a pair
-        await memory.saveContext({ input: pastMessages[i] }, { output: "" });
+        await memory.saveContext({ input: pastMessages[i] }, { output: '' });
       }
     }
-
 
     // Initialize OpenAI model
     const model = new OpenAI({
@@ -116,8 +119,13 @@ AI:`);
     });
 
     // Generate response
-
     const result = await chain.call({ input });
+    pastMessages.push(new AIMessage(result.text));
+    await this.cacheManager.set(
+      `chatHistory_${chatId}`,
+      pastMessages,
+      this.cacheReloadTimer,
+    );
 
     return result?.text || 'No response from Ant.';
   }

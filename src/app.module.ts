@@ -30,7 +30,8 @@ import { FinchService } from './ai-services/finch.service';
 import { ZebraService } from './ai-services/zebra.service';
 import { AntService } from './ai-services/ant.service';
 import { AntEaterService } from './ai-services/ant-eater.service';
-import { AntEaterPlusService } from './ai-services/ant-eaterplus.service';
+import { AntEaterPlusService } from './ai-services/ant-eater-plus.service';
+import { AntEaterPlusPlusService } from './ai-services/ant-eater-plus-plus.service';
 import { BadgerService } from './ai-services/badger.service';
 
 @Module({
@@ -83,6 +84,7 @@ import { BadgerService } from './ai-services/badger.service';
     AntService,
     AntEaterService,
     AntEaterPlusService,
+    AntEaterPlusPlusService,
     BadgerService,
   ],
 })

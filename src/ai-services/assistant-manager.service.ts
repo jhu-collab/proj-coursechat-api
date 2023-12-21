@@ -11,7 +11,8 @@ import { FinchService } from './finch.service';
 import { ZebraService } from './zebra.service';
 import { AntService } from './ant.service';
 import { AntEaterService } from './ant-eater.service';
-import { AntEaterPlusService } from './ant-eaterplus.service';
+import { AntEaterPlusService } from './ant-eater-plus.service';
+import { AntEaterPlusPlusService } from './ant-eater-plus-plus.service';
 import { BadgerService } from './badger.service';
 const logger = new Logger('AssistantManagerService');
 
@@ -32,6 +33,7 @@ export class AssistantManagerService {
     private antService: AntService,
     private antEaterService: AntEaterService,
     private antEaterPlusService: AntEaterPlusService,
+    private antEaterPlusPlusService: AntEaterPlusPlusService,
     private baderService: BadgerService,
   ) {}
 
@@ -48,6 +50,7 @@ export class AssistantManagerService {
     this.assistants.set('ant', this.antService);
     this.assistants.set('ant-eater', this.antEaterService);
     this.assistants.set('ant-eater-plus', this.antEaterPlusService);
+    this.assistants.set('ant-eater-plus-plus', this.antEaterPlusPlusService);
     this.assistants.set('badger', this.baderService);
 
     await this.synchronizeWithServices();

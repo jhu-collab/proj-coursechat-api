@@ -8,7 +8,14 @@ import { AssistantService } from 'src/assistant/assistant.service';
 import { ElephantService } from './elephant.service';
 import { MementoService } from './memento.service';
 import { FinchService } from './finch.service';
+import { ZebraService } from './zebra.service';
+import { AntService } from './ant.service';
+import { AntEaterService } from './ant-eater.service';
+import { AntEaterPlusService } from './ant-eater-plus.service';
+import { ArmadilloService } from './armadillo.service';
+import { ArmadilloPlusService } from './armadillo-plus.service';
 
+import { BadgerService } from './badger.service';
 const logger = new Logger('AssistantManagerService');
 
 @Injectable()
@@ -24,6 +31,13 @@ export class AssistantManagerService {
     private elephantService: ElephantService,
     private mementoService: MementoService,
     private finchService: FinchService,
+    private zebraService: ZebraService,
+    private antService: AntService,
+    private antEaterService: AntEaterService,
+    private antEaterPlusService: AntEaterPlusService,
+    private baderService: BadgerService,
+    private armadillo: ArmadilloService,
+    private armadilloPlus: ArmadilloPlusService,
   ) {}
 
   async onModuleInit() {
@@ -35,6 +49,13 @@ export class AssistantManagerService {
     this.assistants.set('elephant', this.elephantService);
     this.assistants.set('memento', this.mementoService);
     this.assistants.set('finch', this.finchService);
+    this.assistants.set('zebra', this.zebraService);
+    this.assistants.set('ant', this.antService);
+    this.assistants.set('ant-eater', this.antEaterService);
+    this.assistants.set('ant-eater-plus', this.antEaterPlusService);
+    this.assistants.set('armadillo', this.armadillo);
+    this.assistants.set('armadillo-plus', this.armadilloPlus);
+    this.assistants.set('badger', this.baderService);
 
     await this.synchronizeWithServices();
     logger.log('Synchronized AI services with the database.');

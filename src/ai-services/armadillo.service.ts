@@ -62,7 +62,7 @@ export class ArmadilloService extends BaseAssistantService {
     messages.forEach((m) => {
       const messageDocument = {
         pageContent: m.content,
-        metadata: { role: m.role },
+        metadata: { role: m.role, chatID: m.chatId },
       };
       pastMessages.push(messageDocument);
     });
@@ -131,7 +131,7 @@ AI:`);
     await this.chatHistoryEmbedding.addDocuments([
       {
         pageContent: result.text,
-        metadata: { role: 'assistant' },
+        metadata: { role: 'assistant', chatID: chatId },
       },
     ]);
 

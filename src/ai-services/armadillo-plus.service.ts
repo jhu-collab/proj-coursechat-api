@@ -165,7 +165,7 @@ AI:`);
     await this.chatHistoryEmbedding.addDocuments([
       {
         pageContent: result.text,
-        metadata: { role: 'assistant' },
+        metadata: { role: 'assistant', chatID: chatId },
       },
     ]);
     this.currentPastMessages.push(new AIMessage(result));

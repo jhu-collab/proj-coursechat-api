@@ -2,6 +2,7 @@ import {
   Injectable,
   Logger,
   NestMiddleware,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
@@ -29,6 +30,9 @@ export class ExtractApiKeyMiddleware implements NestMiddleware {
         const apiKeyEntity = await this.apiKeyService.findByKey(
           apiKey as string,
         );
+        if (!apiKeyEntity) {
+          throw new NotFoundException(`API Key ${apiKey} not found`);
+        }
         logger.verbose('Attach the entire API key entity to the request');
         req.apiKeyEntity = apiKeyEntity;
       } catch (error) {

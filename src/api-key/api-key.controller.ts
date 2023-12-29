@@ -11,6 +11,7 @@ import {
   ParseIntPipe,
   UseInterceptors,
   ClassSerializerInterceptor,
+  NotFoundException,
 } from '@nestjs/common';
 import { ApiKeyService } from './api-key.service';
 import { ApiKey, AppRoles } from './api-key.entity';
@@ -104,7 +105,13 @@ export class ApiKeyController {
   async findOne(
     @Param('apiKeyId', new ParseIntPipe()) apiKeyId: number,
   ): Promise<ApiKeyResponseDTO> {
-    return this.apiKeyService.findOne(apiKeyId);
+    const foundApiKey = await this.apiKeyService.findOne(apiKeyId);
+
+    if (!foundApiKey) {
+      throw new NotFoundException(`API Key with ID ${apiKeyId} not found`);
+    }
+
+    return foundApiKey;
   }
 
   @Post()
@@ -139,7 +146,16 @@ export class ApiKeyController {
     @Param('apiKeyId', new ParseIntPipe()) apiKeyId: number,
     @Body() updateApiKeyDto: UpdateApiKeyDTO,
   ): Promise<ApiKeyResponseDTO> {
-    return this.apiKeyService.update(apiKeyId, updateApiKeyDto);
+    const updatesApiKey = await this.apiKeyService.update(
+      apiKeyId,
+      updateApiKeyDto,
+    );
+
+    if (!updatesApiKey) {
+      throw new NotFoundException(`API Key with ID ${apiKeyId} not found`);
+    }
+
+    return updatesApiKey;
   }
 
   @Delete(':apiKeyId')
@@ -152,7 +168,16 @@ export class ApiKeyController {
   })
   async delete(
     @Param('apiKeyId', new ParseIntPipe()) apiKeyId: number,
-  ): Promise<void> {
-    return this.apiKeyService.delete(apiKeyId);
+  ): Promise<{ statusCode: number; message: string }> {
+    const deletedApiKey = await this.apiKeyService.delete(apiKeyId);
+
+    if (!deletedApiKey) {
+      throw new NotFoundException(`API Key with ID ${apiKeyId} not found`);
+    }
+
+    return {
+      statusCode: 200,
+      message: 'Post deleted successfully',
+    };
   }
 }

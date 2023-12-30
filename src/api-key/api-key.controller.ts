@@ -57,22 +57,10 @@ export class ApiKeyController {
   async findAll(
     @Query() query: FindApiKeysQueryDTO,
   ): Promise<FindApiKeysResponseDTO> {
-    const { limit, offset, search, withDeleted, isActive } = query;
-
-    const apiKeys: ApiKey[] = await this.apiKeyService.findAll(
-      limit,
-      offset,
-      search,
-      withDeleted,
-      isActive,
-    );
+    const apiKeys: ApiKey[] = await this.apiKeyService.findAll(query);
 
     return {
-      limit,
-      offset,
-      search,
-      withDeleted,
-      isActive,
+      ...query,
       data: apiKeys,
     };
   }

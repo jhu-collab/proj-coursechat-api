@@ -57,22 +57,10 @@ export class AssistantController {
   async findAll(
     @Query() query: FindAssistantsQueryDTO,
   ): Promise<FindAssistantsResponseDTO> {
-    const { limit, offset, search, withDeleted, isActive } = query;
-
-    const assistants: Assistant[] = await this.assistantService.findAll(
-      limit,
-      offset,
-      search,
-      withDeleted,
-      isActive,
-    );
+    const assistants: Assistant[] = await this.assistantService.findAll(query);
 
     return {
-      limit,
-      offset,
-      search,
-      withDeleted,
-      isActive,
+      ...query,
       data: assistants,
     };
   }

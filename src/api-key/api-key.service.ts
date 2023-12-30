@@ -5,6 +5,7 @@ import { ApiKey, AppRoles } from './api-key.entity';
 import { CreateApiKeyDTO } from './api-key-create.dto';
 import { UpdateApiKeyDTO } from './api-key-update.dto';
 import * as crypto from 'crypto';
+import { FindApiKeysQueryDTO } from './api-key-find-query.dto';
 
 @Injectable()
 export class ApiKeyService {
@@ -13,13 +14,8 @@ export class ApiKeyService {
     private apiKeyRepository: Repository<ApiKey>,
   ) {}
 
-  async findAll(
-    limit: number,
-    offset: number,
-    search?: string,
-    withDeleted?: boolean,
-    isActive?: boolean,
-  ): Promise<ApiKey[]> {
+  async findAll(query: FindApiKeysQueryDTO): Promise<ApiKey[]> {
+    const { limit, offset, search, withDeleted, isActive } = query;
     const description = search ? ILike(`%${search}%`) : undefined;
 
     const cards = await this.apiKeyRepository.find({

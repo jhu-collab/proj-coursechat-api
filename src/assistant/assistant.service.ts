@@ -4,6 +4,7 @@ import { ILike, Repository } from 'typeorm';
 import { Assistant } from './assistant.entity';
 import { CreateAssistantDTO } from './assistant-create.dto';
 import { UpdateAssistantDTO } from './assistant-update.dto';
+import { FindAssistantsQueryDTO } from './assistant-find-query.dto';
 
 @Injectable()
 export class AssistantService {
@@ -12,13 +13,8 @@ export class AssistantService {
     private assistantRepository: Repository<Assistant>,
   ) {}
 
-  async findAll(
-    limit: number,
-    offset: number,
-    search?: string,
-    withDeleted?: boolean,
-    isActive?: boolean,
-  ): Promise<Assistant[]> {
+  async findAll(query: FindAssistantsQueryDTO): Promise<Assistant[]> {
+    const { limit, offset, search, withDeleted, isActive } = query;
     const name = search ? ILike(`%${search}%`) : undefined;
     const description = search ? ILike(`%${search}%`) : undefined;
 

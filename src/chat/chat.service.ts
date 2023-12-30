@@ -4,6 +4,7 @@ import { ILike, Repository } from 'typeorm';
 import { Chat } from './chat.entity';
 import { CreateChatDTO } from './chat-create.dto';
 import { UpdateChatDTO } from './chat-update.dto';
+import { FindChatsQueryDTO } from './chat-find-query.dto';
 
 @Injectable()
 export class ChatService {
@@ -12,13 +13,8 @@ export class ChatService {
     private chatRepository: Repository<Chat>,
   ) {}
 
-  async findAll(
-    limit: number,
-    offset: number,
-    search?: string,
-    apiKeyId?: number,
-    assistantName?: string,
-  ): Promise<Chat[]> {
+  async findAll(query: FindChatsQueryDTO): Promise<Chat[]> {
+    const { limit, offset, search, apiKeyId, assistantName } = query;
     const title = search ? ILike(`%${search}%`) : undefined;
 
     const chats = await this.chatRepository.find({

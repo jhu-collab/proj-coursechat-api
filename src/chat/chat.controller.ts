@@ -59,22 +59,10 @@ export class ChatController {
   async findAll(
     @Query() query: FindChatsQueryDTO,
   ): Promise<FindChatsResponseDTO> {
-    const { limit, offset, search, apiKeyId, assistantName } = query;
-
-    const chats: Chat[] = await this.chatService.findAll(
-      limit,
-      offset,
-      search,
-      apiKeyId,
-      assistantName,
-    );
+    const chats: Chat[] = await this.chatService.findAll(query);
 
     return {
-      limit,
-      offset,
-      search,
-      apiKeyId,
-      assistantName,
+      ...query,
       data: chats,
     };
   }

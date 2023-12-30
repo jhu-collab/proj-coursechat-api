@@ -1,20 +1,14 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsString, IsOptional, Length, IsBoolean } from 'class-validator';
 
 export class UpdateApiKeyDTO {
-  @ApiProperty({
-    description: 'A description for the API key.',
-    required: false,
-  })
+  @ApiPropertyOptional({ description: 'A description for the API key.' })
   @IsOptional()
   @IsString()
   @Length(1, 255)
   description?: string;
 
-  @ApiProperty({
-    description: 'Indicates if the API key is active.',
-    required: false,
-  })
+  @ApiPropertyOptional({ description: 'Indicates if the API key is active.' })
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;

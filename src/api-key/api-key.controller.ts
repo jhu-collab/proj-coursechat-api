@@ -26,32 +26,16 @@ import {
   ApiOperation,
   ApiParam,
   ApiBody,
-  ApiResponse,
   ApiSecurity,
   ApiQuery,
 } from '@nestjs/swagger';
-import { ErrorResponseDTO } from 'src/dto/error-response.dto';
 import { ApiOkResponseWithWrapper } from 'src/decorators/api-ok-response-wrapper.decorator';
 import { FindApiKeysQueryDTO } from './api-key-find-query.dto';
 import { FindApiKeysResponseDTO } from './api-key-find-response.dto';
+import { CommonApiResponses } from 'src/decorators/common-api-responses.decorator';
 
 @ApiTags('API Keys')
-@ApiResponse({
-  status: 400,
-  description: 'Bad Request',
-  type: ErrorResponseDTO,
-})
-@ApiResponse({
-  status: 401,
-  description: 'Unauthorized',
-  type: ErrorResponseDTO,
-})
-@ApiResponse({ status: 404, description: 'Not Found', type: ErrorResponseDTO })
-@ApiResponse({
-  status: 500,
-  description: 'Internal Server Error',
-  type: ErrorResponseDTO,
-})
+@CommonApiResponses()
 @ApiSecurity('apiKey')
 @Controller('api-keys')
 @UseGuards(ApiKeyGuard, RolesGuard)

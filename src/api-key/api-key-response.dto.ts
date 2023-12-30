@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { AppRoles } from './api-key.entity';
 
 export class ApiKeyResponseDTO {
@@ -8,10 +8,7 @@ export class ApiKeyResponseDTO {
   @ApiProperty({ description: 'The value of the API key.' })
   apiKeyValue: string;
 
-  @ApiProperty({
-    description: 'A description for the API key.',
-    required: false,
-  })
+  @ApiPropertyOptional({ description: 'A description for the API key.' })
   description?: string;
 
   @ApiProperty({ description: 'The creation date of the API key.' })

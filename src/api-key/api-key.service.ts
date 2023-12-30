@@ -82,7 +82,7 @@ export class ApiKeyService {
       apiKeyValue: generatedKey,
     });
 
-    return await this.apiKeyRepository.save(apiKey);
+    return this.apiKeyRepository.save(apiKey);
   }
 
   async update(

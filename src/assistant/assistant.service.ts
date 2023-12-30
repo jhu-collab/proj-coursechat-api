@@ -1,13 +1,9 @@
-import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { Assistant } from './assistant.entity';
-import { CreateAssistantDTO } from './dto/create-assistant.dto';
-import { UpdateAssistantDTO } from './dto/update-assistant.dto';
+import { CreateAssistantDTO } from './assistant-create.dto';
+import { UpdateAssistantDTO } from './assistant-update.dto';
 
 @Injectable()
 export class AssistantService {
@@ -17,76 +13,68 @@ export class AssistantService {
   ) {}
 
   async findAll(
+    limit: number,
+    offset: number,
     search?: string,
-    limit?: number,
-    offset?: number,
     withDeleted?: boolean,
+    isActive?: boolean,
   ): Promise<Assistant[]> {
-    const queryBuilder =
-      this.assistantRepository.createQueryBuilder('assistant');
+    const name = search ? ILike(`%${search}%`) : undefined;
+    const description = search ? ILike(`%${search}%`) : undefined;
 
-    if (search) {
-      queryBuilder.where(
-        'assistant.name ILIKE :search OR assistant.description ILIKE :search',
-        { search: `%${search}%` },
-      );
-    }
-
-    if (limit !== undefined) {
-      queryBuilder.limit(limit);
-    }
-
-    if (offset !== undefined) {
-      queryBuilder.offset(offset);
-    }
-
-    if (withDeleted) {
-      queryBuilder.withDeleted();
-    }
-
-    return await queryBuilder.getMany();
-  }
-
-  async findOne(name: string): Promise<Assistant> {
-    const assistant = await this.assistantRepository.findOneBy({ name });
-    if (!assistant) {
-      throw new NotFoundException(`Assistant with name ${name} not found`);
-    }
-    return assistant;
-  }
-
-  async findOneOrReturnNull(name: string): Promise<Assistant | null> {
-    return await this.assistantRepository.findOneBy({ name });
-  }
-
-  async create(createModelDto: CreateAssistantDTO): Promise<Assistant> {
-    const existingAssistant = await this.assistantRepository.findOneBy({
-      name: createModelDto.name,
+    const assistants = await this.assistantRepository.find({
+      take: limit,
+      skip: offset,
+      where: [
+        { name: name, isActive: isActive },
+        { description: description, isActive: isActive },
+      ],
+      order: {
+        createdAt: 'DESC',
+      },
+      withDeleted,
     });
-    if (existingAssistant) {
-      throw new ConflictException(
-        `Assistant with name ${createModelDto.name} already exists`,
-      );
-    }
-    const assistant = this.assistantRepository.create(createModelDto);
-    return await this.assistantRepository.save(assistant);
+
+    return assistants;
+  }
+
+  async findOne(name: string): Promise<Assistant | null> {
+    return this.assistantRepository.findOne({
+      where: {
+        name: name,
+      },
+      withDeleted: false,
+    });
+  }
+
+  async create(createAssistantDto: CreateAssistantDTO): Promise<Assistant> {
+    const assistant = this.assistantRepository.create(createAssistantDto);
+    return this.assistantRepository.save(assistant);
   }
 
   async update(
     name: string,
     updateAssistantDto: UpdateAssistantDTO,
-  ): Promise<Assistant> {
-    const assistant = await this.findOne(name); // throws NotFoundException if not found
-    for (const key of Object.keys(updateAssistantDto)) {
-      if (updateAssistantDto[key] !== undefined) {
-        assistant[key] = updateAssistantDto[key];
-      }
+  ): Promise<Assistant | null> {
+    const assistant = await this.assistantRepository.preload({
+      name,
+      ...updateAssistantDto,
+    });
+
+    if (!assistant) {
+      return null;
     }
-    return await this.assistantRepository.save(assistant);
+
+    return this.assistantRepository.save(assistant);
   }
 
-  async delete(name: string): Promise<void> {
-    const assistant = await this.findOne(name); // throws NotFoundException if not found
-    await this.assistantRepository.softRemove(assistant);
+  async delete(name: string): Promise<Assistant | null> {
+    const assistant = await this.findOne(name);
+
+    if (!assistant) {
+      return null;
+    }
+
+    return this.assistantRepository.softRemove(assistant);
   }
 }

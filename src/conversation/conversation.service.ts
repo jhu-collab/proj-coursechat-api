@@ -30,7 +30,7 @@ export class ConversationService {
     offset?: number,
     apiKeyId?: number,
   ): Promise<Chat[]> {
-    return this.chatService.findAll(search, limit, offset, apiKeyId);
+    return this.chatService.findAll(limit, offset, search, apiKeyId);
   }
 
   async getAllMessagesInConversation(
@@ -40,7 +40,14 @@ export class ConversationService {
     offset?: number,
     apiKeyId?: number,
   ): Promise<Message[]> {
-    await this.chatService.findOne(chatId, apiKeyId); // throws NotFoundException if not found
+    const chat = await this.chatService.findOne(chatId, apiKeyId);
+
+    if (!chat) {
+      throw new NotFoundException(
+        `Chat with ID ${chatId} not found for API Key ${apiKeyId}`,
+      );
+    }
+
     return this.messageService.findAll(chatId, search, limit, offset);
   }
 
@@ -98,7 +105,14 @@ export class ConversationService {
     let chat = await this.cacheManager.get<Chat>(chatCacheKey);
 
     if (!chat) {
-      chat = await this.chatService.findOne(chatId, apiKeyId); // throws NotFoundException if not found
+      chat = await this.chatService.findOne(chatId, apiKeyId);
+
+      if (!chat) {
+        throw new NotFoundException(
+          `Chat with ID ${chatId} not found for API Key ${apiKeyId}`,
+        );
+      }
+
       // Store the fetched chat in cache with an expiration time (60 minutes)
       await this.cacheManager.set(chatCacheKey, chat, 3600);
     } else if (apiKeyId) {

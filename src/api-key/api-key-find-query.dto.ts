@@ -44,9 +44,7 @@ export class FindApiKeysQueryDTO {
   })
   withDeleted?: boolean;
 
-  @ApiPropertyOptional({
-    description: 'Filter by active or inactive API keys',
-  })
+  @ApiPropertyOptional({ description: 'Filter by active or inactive API keys' })
   @IsBoolean()
   @IsOptional()
   @Transform(({ obj }) => {

@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import {
   IsInt,
@@ -11,10 +11,7 @@ import {
 } from 'class-validator';
 
 export class FindAssistantsQueryDTO {
-  @ApiProperty({
-    required: false,
-    description: 'Limit the number of results',
-  })
+  @ApiPropertyOptional({ description: 'Limit the number of results' })
   @IsInt()
   @IsPositive()
   @Min(1)
@@ -22,27 +19,18 @@ export class FindAssistantsQueryDTO {
   @IsOptional()
   limit: number = 50;
 
-  @ApiProperty({
-    required: false,
-    description: 'Offset for pagination',
-  })
+  @ApiPropertyOptional({ description: 'Offset for pagination' })
   @IsInt()
   @Min(0)
   @IsOptional()
   offset: number = 0;
 
-  @ApiProperty({
-    required: false,
-    description: 'Search filter for assistants',
-  })
+  @ApiPropertyOptional({ description: 'Search filter for assistants' })
   @IsString()
   @IsOptional()
   search?: string;
 
-  @ApiProperty({
-    required: false,
-    description: 'Include soft-deleted assistants',
-  })
+  @ApiPropertyOptional({ description: 'Include soft-deleted assistants' })
   @IsBoolean()
   @IsOptional()
   @Transform(({ value }) => {
@@ -56,8 +44,7 @@ export class FindAssistantsQueryDTO {
   })
   withDeleted?: boolean;
 
-  @ApiProperty({
-    required: false,
+  @ApiPropertyOptional({
     description: 'Filter by active or inactive assistants',
   })
   @IsBoolean()

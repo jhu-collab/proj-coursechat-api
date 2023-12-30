@@ -1,33 +1,20 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { AssistantResponseDTO } from './assistant-response.dto';
 
 export class FindAssistantsResponseDTO {
-  @ApiProperty({
-    required: false,
-    description: 'Limit the number of results',
-  })
+  @ApiProperty({ description: 'Limit the number of results' })
   limit: number;
 
-  @ApiProperty({
-    required: false,
-    description: 'Offset for pagination',
-  })
+  @ApiProperty({ description: 'Offset for pagination' })
   offset: number;
 
-  @ApiProperty({
-    required: false,
-    description: 'Search filter for assistants',
-  })
+  @ApiPropertyOptional({ description: 'Search filter for assistants' })
   search?: string;
 
-  @ApiProperty({
-    required: false,
-    description: 'Include soft-deleted assistants',
-  })
+  @ApiPropertyOptional({ description: 'Include soft-deleted assistants' })
   withDeleted?: boolean;
 
-  @ApiProperty({
-    required: false,
+  @ApiPropertyOptional({
     description: 'Filter by active or inactive assistants',
   })
   isActive?: boolean;

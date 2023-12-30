@@ -3,6 +3,7 @@ import {
   CanActivate,
   ExecutionContext,
   BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ChatService } from 'src/chat/chat.service';
@@ -23,7 +24,12 @@ export class ChatIdGuard implements CanActivate {
       throw new BadRequestException('Invalid or missing chatId');
     }
 
-    await this.chatService.findOne(chatId); // throw NotFoundException if chat doesn't exist
+    const chat = await this.chatService.findOne(chatId);
+
+    if (!chat) {
+      throw new NotFoundException(`Chat with id ${chatId} not found`);
+    }
+
     return true; // Only return true if the chat exists
   }
 }

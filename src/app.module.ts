@@ -17,7 +17,6 @@ import { AssistantService } from './assistant/assistant.service';
 import { AssistantController } from './assistant/assistant.controller';
 import { Assistant } from './assistant/assistant.entity';
 import { ExtractApiKeyMiddleware } from './middleware/extract-api-key.middleware';
-import { ConversationService } from './conversation/conversation.service';
 import { ConversationController } from './conversation/conversation.controller';
 import { AssistantManagerService } from './ai-services/assistant-manager.service';
 import { ParrotService } from './ai-services/parrot.service';
@@ -68,7 +67,6 @@ import { validate } from './env.validation';
     MessageService,
     ApiKeyService,
     AssistantService,
-    ConversationService,
     AssistantManagerService,
     ParrotService,
     DoryService,

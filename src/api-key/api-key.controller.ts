@@ -33,6 +33,7 @@ import { ApiOkResponseWithWrapper } from 'src/decorators/api-ok-response-wrapper
 import { FindApiKeysQueryDTO } from './api-key-find-query.dto';
 import { FindApiKeysResponseDTO } from './api-key-find-response.dto';
 import { CommonApiResponses } from 'src/decorators/common-api-responses.decorator';
+import { DefaultPaginationInterceptor } from 'src/interceptors/default-pagination.interceptor';
 
 @ApiTags('API Keys')
 @CommonApiResponses()
@@ -54,6 +55,7 @@ export class ApiKeyController {
     status: 200,
     type: FindApiKeysResponseDTO,
   })
+  @UseInterceptors(DefaultPaginationInterceptor)
   async findAll(
     @Query() query: FindApiKeysQueryDTO,
   ): Promise<FindApiKeysResponseDTO> {

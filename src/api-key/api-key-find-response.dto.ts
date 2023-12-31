@@ -3,10 +3,10 @@ import { ApiKeyResponseDTO } from './api-key-response.dto';
 
 export class FindApiKeysResponseDTO {
   @ApiProperty({ description: 'Limit the number of results' })
-  limit: number;
+  limit?: number;
 
   @ApiProperty({ description: 'Offset for pagination' })
-  offset: number;
+  offset?: number;
 
   @ApiPropertyOptional({ description: 'Search filter for API keys' })
   search?: string;

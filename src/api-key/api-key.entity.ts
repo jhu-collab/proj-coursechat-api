@@ -39,7 +39,6 @@ export class ApiKey {
   @DeleteDateColumn()
   deletedAt: Date;
 
-  @Exclude()
   @OneToMany(() => Chat, (chat) => chat.apiKey)
   chats: Chat[];
 

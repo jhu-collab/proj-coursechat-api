@@ -34,6 +34,7 @@ import {
 } from '@nestjs/swagger';
 import { ApiOkResponseWithWrapper } from 'src/decorators/api-ok-response-wrapper.decorator';
 import { CommonApiResponses } from 'src/decorators/common-api-responses.decorator';
+import { DefaultPaginationInterceptor } from 'src/interceptors/default-pagination.interceptor';
 
 @ApiTags('Messages')
 @CommonApiResponses()
@@ -54,6 +55,7 @@ export class MessageController {
     status: 200,
     type: FindMessagesResponseDTO,
   })
+  @UseInterceptors(DefaultPaginationInterceptor)
   async findAll(
     @Param('chatId', ParseIntPipe) chatId: number,
     @Query() query: FindMessagesQueryDTO,

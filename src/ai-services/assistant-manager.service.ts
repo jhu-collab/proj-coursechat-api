@@ -54,7 +54,7 @@ export class AssistantManagerService {
 
   async synchronizeWithServices(): Promise<void> {
     for (const assistant of this.assistants.values()) {
-      const existingAssistant = await this.assistantService.findOneOrReturnNull(
+      const existingAssistant = await this.assistantService.findOne(
         assistant.modelName,
       );
       if (!existingAssistant) {

@@ -4,10 +4,10 @@ import { MessageRoles } from './message.entity';
 
 export class FindMessagesResponseDTO {
   @ApiProperty({ description: 'Limit the number of results' })
-  limit: number;
+  limit?: number;
 
   @ApiProperty({ description: 'Offset for pagination' })
-  offset: number;
+  offset?: number;
 
   @ApiPropertyOptional({ description: 'Search filter for messages' })
   search?: string;

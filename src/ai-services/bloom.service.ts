@@ -22,7 +22,7 @@ export class BloomService extends BaseAssistantService {
   ): Promise<string> {
     let context = '';
     if (chatId) {
-      const messages = await this.messageService.findAll(chatId);
+      const messages = await this.messageService.findAll({ chatId });
       context = messages
         .map((m) => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`)
         .join('\n');

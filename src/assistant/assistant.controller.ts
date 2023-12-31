@@ -33,6 +33,7 @@ import { FindAssistantsQueryDTO } from './assistant-find-query.dto';
 import { FindAssistantsResponseDTO } from './assistant-find-response.dto';
 import { AppRoles } from 'src/api-key/api-key.entity';
 import { CommonApiResponses } from 'src/decorators/common-api-responses.decorator';
+import { DefaultPaginationInterceptor } from 'src/interceptors/default-pagination.interceptor';
 
 @ApiTags('Assistants')
 @CommonApiResponses()
@@ -54,6 +55,7 @@ export class AssistantController {
     status: 200,
     type: FindAssistantsResponseDTO,
   })
+  @UseInterceptors(DefaultPaginationInterceptor)
   async findAll(
     @Query() query: FindAssistantsQueryDTO,
   ): Promise<FindAssistantsResponseDTO> {

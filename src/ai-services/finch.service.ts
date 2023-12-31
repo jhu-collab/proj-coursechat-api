@@ -36,7 +36,7 @@ Finch is known for summarizing moral and ethical dilemmas in a way that is both 
     // request will have to recompute the entire chat history.
     const pastMessages = [];
     if (chatId) {
-      const messages = await this.messageService.findAll(chatId);
+      const messages = await this.messageService.findAll({ chatId });
       messages.forEach((m) => {
         if (m.role === 'user') {
           pastMessages.push(new HumanMessage(m.content));

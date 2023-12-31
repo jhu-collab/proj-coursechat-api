@@ -43,7 +43,9 @@ import { FindMessagesResponseDTO } from 'src/message/message-find-response.dto';
 import { FindMessagesQueryDTO } from 'src/message/message-find-query.dto';
 import { MessageRoles } from 'src/message/message.entity';
 import { UpdateChatDTO } from 'src/chat/chat-update.dto';
+import { Cache } from 'cache-manager';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { DefaultPaginationInterceptor } from 'src/interceptors/default-pagination.interceptor';
 
 @ApiTags('Conversations')
 @CommonApiResponses()
@@ -73,6 +75,7 @@ export class ConversationController {
     status: 200,
     type: FindChatsResponseDTO,
   })
+  @UseInterceptors(DefaultPaginationInterceptor)
   async findAllConversation(
     @ApiKeyEntity() apiKey: ApiKey,
     @Query() query: FindChatsQueryDTO,

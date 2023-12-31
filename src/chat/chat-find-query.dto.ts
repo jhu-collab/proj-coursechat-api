@@ -15,13 +15,13 @@ export class FindChatsQueryDTO {
   @Min(1)
   @Max(100)
   @IsOptional()
-  limit: number = 50;
+  limit?: number;
 
   @ApiPropertyOptional({ description: 'Offset for pagination' })
   @IsInt()
   @Min(0)
   @IsOptional()
-  offset: number = 0;
+  offset?: number;
 
   @ApiPropertyOptional({ description: 'Search filter for chat titles' })
   @IsString()

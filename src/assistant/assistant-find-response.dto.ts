@@ -3,10 +3,10 @@ import { AssistantResponseDTO } from './assistant-response.dto';
 
 export class FindAssistantsResponseDTO {
   @ApiProperty({ description: 'Limit the number of results' })
-  limit: number;
+  limit?: number;
 
   @ApiProperty({ description: 'Offset for pagination' })
-  offset: number;
+  offset?: number;
 
   @ApiPropertyOptional({ description: 'Search filter for assistants' })
   search?: string;

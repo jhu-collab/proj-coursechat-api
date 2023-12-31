@@ -3,10 +3,10 @@ import { ChatResponseDTO } from './chat-response.dto';
 
 export class FindChatsResponseDTO {
   @ApiProperty({ description: 'Limit the number of results' })
-  limit: number;
+  limit?: number;
 
   @ApiProperty({ description: 'Offset for pagination' })
-  offset: number;
+  offset?: number;
 
   @ApiPropertyOptional({ description: 'Search filter for chats' })
   search?: string;

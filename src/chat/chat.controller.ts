@@ -35,6 +35,7 @@ import { FindChatsQueryDTO } from './chat-find-query.dto';
 import { FindChatsResponseDTO } from './chat-find-response.dto';
 import { ApiKey, AppRoles } from 'src/api-key/api-key.entity';
 import { CommonApiResponses } from 'src/decorators/common-api-responses.decorator';
+import { DefaultPaginationInterceptor } from 'src/interceptors/default-pagination.interceptor';
 
 @ApiTags('Chats')
 @CommonApiResponses()
@@ -56,6 +57,7 @@ export class ChatController {
     status: 200,
     type: FindChatsResponseDTO,
   })
+  @UseInterceptors(DefaultPaginationInterceptor)
   async findAll(
     @Query() query: FindChatsQueryDTO,
   ): Promise<FindChatsResponseDTO> {

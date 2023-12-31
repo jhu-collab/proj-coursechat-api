@@ -17,11 +17,8 @@ export enum AppRoles {
 
 @Entity('api_keys')
 export class ApiKey {
-  @PrimaryGeneratedColumn()
-  id: number;
-
-  @Column({ type: 'varchar', length: 255, unique: true })
-  apiKeyValue: string;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column({ type: 'text', nullable: true })
   description: string;

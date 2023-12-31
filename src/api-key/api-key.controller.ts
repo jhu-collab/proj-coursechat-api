@@ -8,7 +8,6 @@ import {
   Put,
   Query,
   UseGuards,
-  ParseIntPipe,
   UseInterceptors,
   ClassSerializerInterceptor,
   NotFoundException,
@@ -77,7 +76,7 @@ export class ApiKeyController {
     type: ApiKeyResponseDTO,
   })
   async findOne(
-    @Param('apiKeyId', new ParseIntPipe()) apiKeyId: number,
+    @Param('apiKeyId') apiKeyId: string,
   ): Promise<ApiKeyResponseDTO> {
     const foundApiKey = await this.apiKeyService.findOne(apiKeyId);
 
@@ -117,7 +116,7 @@ export class ApiKeyController {
     type: ApiKeyResponseDTO,
   })
   async update(
-    @Param('apiKeyId', new ParseIntPipe()) apiKeyId: number,
+    @Param('apiKeyId') apiKeyId: string,
     @Body() updateApiKeyDto: UpdateApiKeyDTO,
   ): Promise<ApiKeyResponseDTO> {
     const updatesApiKey = await this.apiKeyService.update(
@@ -141,7 +140,7 @@ export class ApiKeyController {
     status: 200,
   })
   async delete(
-    @Param('apiKeyId', new ParseIntPipe()) apiKeyId: number,
+    @Param('apiKeyId') apiKeyId: string,
   ): Promise<{ statusCode: number; message: string }> {
     const deletedApiKey = await this.apiKeyService.delete(apiKeyId);
 

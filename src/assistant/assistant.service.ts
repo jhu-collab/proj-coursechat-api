@@ -71,6 +71,7 @@ export class AssistantService {
       return null;
     }
 
+    Object.assign(assistant, { isActive: false });
     return this.assistantRepository.softRemove(assistant);
   }
 }

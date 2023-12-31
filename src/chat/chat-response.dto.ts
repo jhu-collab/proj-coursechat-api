@@ -14,7 +14,7 @@ export class ChatResponseDTO {
   updatedAt: Date;
 
   @ApiProperty({ description: 'ID of the associated API key' })
-  apiKeyId: number;
+  apiKeyId: string;
 
   @ApiProperty({ description: 'Name of the associated assistant' })
   assistantName: string;

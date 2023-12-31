@@ -4,7 +4,6 @@ import { ILike, Repository } from 'typeorm';
 import { ApiKey, AppRoles } from './api-key.entity';
 import { CreateApiKeyDTO } from './api-key-create.dto';
 import { UpdateApiKeyDTO } from './api-key-update.dto';
-import * as crypto from 'crypto';
 import { FindApiKeysQueryDTO } from './api-key-find-query.dto';
 
 @Injectable()
@@ -34,7 +33,7 @@ export class ApiKeyService {
     return cards;
   }
 
-  async findOne(id: number): Promise<ApiKey | null> {
+  async findOne(id: string): Promise<ApiKey | null> {
     return this.apiKeyRepository.findOne({
       where: {
         id: id,
@@ -47,42 +46,26 @@ export class ApiKeyService {
     return this.apiKeyRepository.findOneBy({ role });
   }
 
-  async findByKey(key: string): Promise<ApiKey | null> {
-    return this.apiKeyRepository.findOne({
-      where: {
-        apiKeyValue: key,
-      },
-      withDeleted: false,
-    });
-  }
-
-  async validateApiKey(key: string): Promise<boolean> {
+  async validateApiKey(id: string): Promise<boolean> {
     const foundApiKey = await this.apiKeyRepository.findOne({
       where: {
-        apiKeyValue: key,
+        id: id,
         isActive: true,
       },
       withDeleted: false,
     });
 
-    return Boolean(foundApiKey); // Returns true if 'foundApiKey' is truthy (e.g., a non-empty string).
+    // Returns true if 'foundApiKey' is truthy (e.g., a non-empty string).
+    return Boolean(foundApiKey);
   }
 
   async create(createApiKeyDto: CreateApiKeyDTO): Promise<ApiKey> {
-    // Generate a random API key
-    const generatedKey = crypto.randomBytes(32).toString('hex');
-
-    // Assign the generated key and other fields from DTO to our entity
-    const apiKey = this.apiKeyRepository.create({
-      ...createApiKeyDto,
-      apiKeyValue: generatedKey,
-    });
-
+    const apiKey = this.apiKeyRepository.create(createApiKeyDto);
     return this.apiKeyRepository.save(apiKey);
   }
 
   async update(
-    id: number,
+    id: string,
     updateApiKeyDto: UpdateApiKeyDTO,
   ): Promise<ApiKey | null> {
     const apiKey = await this.apiKeyRepository.preload({
@@ -97,7 +80,7 @@ export class ApiKeyService {
     return this.apiKeyRepository.save(apiKey);
   }
 
-  async delete(id: number): Promise<ApiKey | null> {
+  async delete(id: string): Promise<ApiKey | null> {
     const foundApiKey = await this.findOne(id);
 
     if (!foundApiKey) {

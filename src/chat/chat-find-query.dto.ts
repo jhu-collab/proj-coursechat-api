@@ -6,6 +6,7 @@ import {
   Min,
   IsString,
   Max,
+  IsUUID,
 } from 'class-validator';
 
 export class FindChatsQueryDTO {
@@ -29,9 +30,9 @@ export class FindChatsQueryDTO {
   search?: string;
 
   @ApiPropertyOptional({ description: 'Filter by specific API key ID' })
-  @IsInt()
+  @IsUUID()
   @IsOptional()
-  apiKeyId?: number;
+  apiKeyId?: string;
 
   @ApiPropertyOptional({ description: 'Filter by specific assistant name' })
   @IsString()

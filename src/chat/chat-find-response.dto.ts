@@ -12,7 +12,7 @@ export class FindChatsResponseDTO {
   search?: string;
 
   @ApiPropertyOptional({ description: 'Filter by specific API key ID' })
-  apiKeyId?: number;
+  apiKeyId?: string;
 
   @ApiPropertyOptional({ description: 'Filter by specific assistant name' })
   assistantName?: string;

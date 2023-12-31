@@ -3,10 +3,7 @@ import { AppRoles } from './api-key.entity';
 
 export class ApiKeyResponseDTO {
   @ApiProperty({ description: 'The unique identifier of the API key.' })
-  id: number;
-
-  @ApiProperty({ description: 'The value of the API key.' })
-  apiKeyValue: string;
+  id: string;
 
   @ApiPropertyOptional({ description: 'A description for the API key.' })
   description?: string;

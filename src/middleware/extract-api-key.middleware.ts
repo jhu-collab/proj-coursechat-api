@@ -27,9 +27,7 @@ export class ExtractApiKeyMiddleware implements NestMiddleware {
       logger.verbose('API key found in request headers');
       try {
         logger.verbose('Fetch the API key entity from the database');
-        const apiKeyEntity = await this.apiKeyService.findByKey(
-          apiKey as string,
-        );
+        const apiKeyEntity = await this.apiKeyService.findOne(apiKey as string);
         if (!apiKeyEntity) {
           throw new NotFoundException(`API Key ${apiKey} not found`);
         }

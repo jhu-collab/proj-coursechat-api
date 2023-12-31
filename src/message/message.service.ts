@@ -67,7 +67,9 @@ export class MessageService {
     return this.messageRepository.save(message);
   }
 
-  async delete(messageId: number): Promise<{ statusCode: number; message: string } {
+  async delete(
+    messageId: number,
+  ): Promise<{ statusCode: number; message: string }> {
     const message = await this.findOne(messageId);
 
     if (!message) {

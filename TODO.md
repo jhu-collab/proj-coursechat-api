@@ -4,3 +4,4 @@
 - Write unit tests for all the services and controllers.
 - Create a readme for each endpoint to document all design decisions.
 - Implement streaming for the conversation endpoint.
+- Make sure the dev dependencies are only installed in the dev environment.

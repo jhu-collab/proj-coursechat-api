@@ -9,6 +9,7 @@ import {
   Max,
   IsBoolean,
 } from 'class-validator';
+import { booleanStringTransform } from 'src/utils/transform.utils';
 
 export class FindApiKeysQueryDTO {
   @ApiPropertyOptional({ description: 'Limit the number of results' })
@@ -33,28 +34,12 @@ export class FindApiKeysQueryDTO {
   @ApiPropertyOptional({ description: 'Include soft-deleted API keys' })
   @IsBoolean()
   @IsOptional()
-  @Transform(({ obj }) => {
-    if ('withDeleted' in obj && obj.withDeleted === 'true') {
-      return true;
-    } else if ('withDeleted' in obj && obj.withDeleted === 'false') {
-      return false;
-    } else {
-      return undefined;
-    }
-  })
+  @Transform(({ obj }) => booleanStringTransform(obj, 'withDeleted'))
   withDeleted?: boolean;
 
   @ApiPropertyOptional({ description: 'Filter by active or inactive API keys' })
   @IsBoolean()
   @IsOptional()
-  @Transform(({ obj }) => {
-    if ('isActive' in obj && obj.isActive === 'true') {
-      return true;
-    } else if ('isActive' in obj && obj.isActive === 'false') {
-      return false;
-    } else {
-      return undefined;
-    }
-  })
+  @Transform(({ obj }) => booleanStringTransform(obj, 'isActive'))
   isActive?: boolean;
 }

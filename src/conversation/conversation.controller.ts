@@ -10,13 +10,15 @@ import {
   ParseIntPipe,
   UseInterceptors,
   ClassSerializerInterceptor,
+  InternalServerErrorException,
+  NotFoundException,
+  Inject,
 } from '@nestjs/common';
-import { ConversationService } from './conversation.service';
-import { StartConversationDTO } from './dto/start-conversation.dto';
-import { ContinueConversationDTO } from './dto/continue-conversation.dto';
+import { StartConversationDTO } from './conversation-start.dto';
+import { ContinueConversationDTO } from './conversation-continue.dto';
 import { ApiKeyGuard } from 'src/guards/api-key.guard';
 import { ApiKeyEntity } from 'src/decorators/api-key.decorator';
-import { ConversationResponseDTO } from './dto/conversation-response.dto';
+import { ConversationResponseDTO } from './conversation-response.dto';
 import { Roles } from 'src/decorators/roles.decorator';
 import { ApiKey, AppRoles } from 'src/api-key/api-key.entity';
 import { RolesGuard } from 'src/guards/roles.guard';
@@ -25,38 +27,37 @@ import {
   ApiOperation,
   ApiParam,
   ApiQuery,
-  ApiResponse,
   ApiBody,
   ApiSecurity,
 } from '@nestjs/swagger';
 import { ChatResponseDTO } from 'src/chat/chat-response.dto';
-import { MessageResponseDTO } from 'src/message/message-response.dto';
-import { ErrorResponseDTO } from 'src/dto/error-response.dto';
 import { ApiOkResponseWithWrapper } from 'src/decorators/api-ok-response-wrapper.decorator';
+import { CommonApiResponses } from 'src/decorators/common-api-responses.decorator';
+import { FindChatsQueryDTO } from 'src/chat/chat-find-query.dto';
+import { FindChatsResponseDTO } from 'src/chat/chat-find-response.dto';
+import { Chat } from 'src/chat/chat.entity';
+import { ChatService } from 'src/chat/chat.service';
+import { MessageService } from 'src/message/message.service';
+import { AssistantManagerService } from 'src/ai-services/assistant-manager.service';
+import { FindMessagesResponseDTO } from 'src/message/message-find-response.dto';
+import { FindMessagesQueryDTO } from 'src/message/message-find-query.dto';
+import { MessageRoles } from 'src/message/message.entity';
+import { UpdateChatDTO } from 'src/chat/chat-update.dto';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 
 @ApiTags('Conversations')
-@ApiResponse({
-  status: 400,
-  description: 'Bad Request',
-  type: ErrorResponseDTO,
-})
-@ApiResponse({
-  status: 401,
-  description: 'Unauthorized',
-  type: ErrorResponseDTO,
-})
-@ApiResponse({ status: 404, description: 'Not Found', type: ErrorResponseDTO })
-@ApiResponse({
-  status: 500,
-  description: 'Internal Server Error',
-  type: ErrorResponseDTO,
-})
+@CommonApiResponses()
 @ApiSecurity('apiKey')
 @Controller('conversations')
 @UseGuards(ApiKeyGuard, RolesGuard)
 @UseInterceptors(ClassSerializerInterceptor)
 export class ConversationController {
-  constructor(private readonly conversationService: ConversationService) {}
+  constructor(
+    private readonly chatService: ChatService,
+    private readonly messageService: MessageService,
+    private readonly assistantManagerService: AssistantManagerService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+  ) {}
 
   @Get()
   @Roles(AppRoles.ADMIN, AppRoles.CLIENT)
@@ -65,39 +66,23 @@ export class ConversationController {
       'Fetch all conversations for an API key or all conversations for ADMIN',
   })
   @ApiQuery({
-    name: 'search',
-    required: false,
-    description: 'Search query for conversations',
-  })
-  @ApiQuery({
-    name: 'limit',
-    required: false,
-    description: 'Limit the number of results',
-  })
-  @ApiQuery({
-    name: 'offset',
-    required: false,
-    description: 'Offset for pagination',
+    type: FindChatsQueryDTO,
   })
   @ApiOkResponseWithWrapper({
     description: 'List of conversations (chats)',
     status: 200,
-    type: ChatResponseDTO,
-    isArray: true,
+    type: FindChatsResponseDTO,
   })
   async findAllConversation(
     @ApiKeyEntity() apiKey: ApiKey,
-    @Query('search') search?: string,
-    @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
-    @Query('offset', new ParseIntPipe({ optional: true })) offset?: number,
-  ): Promise<ChatResponseDTO[]> {
-    const apiKeyId = apiKey.role === AppRoles.CLIENT ? apiKey.id : undefined;
-    return this.conversationService.getAllConversations(
-      search,
-      limit,
-      offset,
-      apiKeyId,
-    );
+    @Query() query: FindChatsQueryDTO,
+  ): Promise<FindChatsResponseDTO> {
+    const chats: Chat[] = await this.chatService.findAll(query);
+
+    return {
+      ...query,
+      data: chats,
+    };
   }
 
   @Get(':chatId/messages')
@@ -106,27 +91,37 @@ export class ConversationController {
     summary: 'Retrieve all messages within a specific conversation (chat)',
   })
   @ApiParam({ name: 'chatId', description: 'Chat ID' })
+  @ApiQuery({ type: FindMessagesQueryDTO })
   @ApiOkResponseWithWrapper({
     description: 'List of messages',
     status: 200,
-    type: MessageResponseDTO,
-    isArray: true,
+    type: FindMessagesResponseDTO,
   })
   async findAllMessagesInOneConversation(
     @ApiKeyEntity() apiKey: ApiKey,
-    @Param('chatId', new ParseIntPipe()) chatId: number,
-    @Query('search') search?: string,
-    @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
-    @Query('offset', new ParseIntPipe({ optional: true })) offset?: number,
-  ): Promise<MessageResponseDTO[]> {
+    @Query() query: FindMessagesQueryDTO,
+  ): Promise<FindMessagesResponseDTO> {
     const apiKeyId = apiKey.role === AppRoles.CLIENT ? apiKey.id : undefined;
-    return this.conversationService.getAllMessagesInConversation(
-      chatId,
-      search,
+    const { limit, offset, search, chatId } = query;
+    const chat = await this.chatService.findOne(chatId, apiKeyId);
+
+    if (!chat) {
+      throw new NotFoundException(
+        `Chat with ID ${chatId} not found for API Key ${apiKeyId}`,
+      );
+    }
+
+    const messages = await this.messageService.findAll({
       limit,
       offset,
-      apiKeyId,
-    );
+      search,
+      chatId,
+    });
+
+    return {
+      ...query,
+      data: messages,
+    };
   }
 
   @Post('start')
@@ -145,10 +140,45 @@ export class ConversationController {
     @Body() startConversationDto: StartConversationDTO,
     @ApiKeyEntity() apiKey: ApiKey,
   ): Promise<ConversationResponseDTO> {
-    return this.conversationService.startConversation(
-      apiKey.id,
-      startConversationDto,
-    );
+    try {
+      const apiKeyId = apiKey.role === AppRoles.CLIENT ? apiKey.id : undefined;
+      const { message, ...createChatDto } = startConversationDto;
+      const chat = await this.chatService.create(apiKeyId, createChatDto);
+
+      await this.messageService.create(chat.id, {
+        content: message,
+        role: MessageRoles.USER,
+      });
+
+      // Generate response using the associated assistant
+      const response = await this.assistantManagerService.generateResponse(
+        chat.assistantName,
+        message,
+        chat.id, // Pass chat.id as chatId
+      );
+
+      if (!response) {
+        throw new InternalServerErrorException(
+          'Failed to generate AI response.',
+        );
+      }
+
+      // Save the AI's response as a new message linked to the same chat
+      await this.messageService.create(chat.id, {
+        content: response,
+        role: MessageRoles.ASSISTANT,
+      });
+
+      return {
+        chatId: chat.id,
+        response,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Failed to start a conversation.',
+        error.message,
+      );
+    }
   }
 
   @Post(':chatId/continue')
@@ -170,17 +200,73 @@ export class ConversationController {
     @Body() continueConversationDto: ContinueConversationDTO,
   ): Promise<ConversationResponseDTO> {
     const apiKeyId = apiKey.role === AppRoles.CLIENT ? apiKey.id : undefined;
-    return this.conversationService.continueConversation(
-      chatId,
-      continueConversationDto,
-      apiKeyId,
-    );
+    // Try to get the chat from cache
+    const chatCacheKey = `chat_${chatId}`;
+    let chat = await this.cacheManager.get<Chat>(chatCacheKey);
+
+    if (!chat) {
+      chat = await this.chatService.findOne(chatId, apiKeyId);
+
+      if (!chat) {
+        throw new NotFoundException(
+          `Chat with ID ${chatId} not found for API Key ${apiKeyId}`,
+        );
+      }
+
+      // Store the fetched chat in cache with an expiration time (60 minutes)
+      await this.cacheManager.set(chatCacheKey, chat, 3600);
+    } else if (apiKeyId) {
+      if (chat.apiKeyId !== apiKeyId) {
+        throw new NotFoundException(
+          `Chat with ID ${chatId} not found for API Key ${apiKeyId}`,
+        );
+      }
+    }
+
+    const { message } = continueConversationDto;
+
+    try {
+      await this.messageService.create(chatId, {
+        content: message,
+        role: MessageRoles.USER,
+      });
+
+      // Generate response using the associated assistant
+      const response = await this.assistantManagerService.generateResponse(
+        chat.assistantName,
+        message,
+        chatId,
+      );
+
+      if (!response) {
+        throw new InternalServerErrorException(
+          'Failed to generate AI response.',
+        );
+      }
+
+      // Save the AI's response as a new message linked to the same chat
+      await this.messageService.create(chatId, {
+        content: response,
+        role: MessageRoles.ASSISTANT,
+      });
+
+      return {
+        chatId,
+        response,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Failed to continue a conversation.',
+        error.message,
+      );
+    }
   }
 
   @Patch(':chatId/title')
   @Roles(AppRoles.ADMIN, AppRoles.CLIENT)
   @ApiOperation({ summary: 'Update the title of a specific conversation' })
   @ApiParam({ name: 'chatId', description: 'Chat ID' })
+  @ApiBody({ type: UpdateChatDTO, description: 'Updated details for the chat' })
   @ApiOkResponseWithWrapper({
     description: 'Conversation (chat) title updated successfully',
     status: 200,
@@ -189,13 +275,19 @@ export class ConversationController {
   async updateConversationTitle(
     @ApiKeyEntity() apiKey: ApiKey,
     @Param('chatId', new ParseIntPipe()) chatId: number,
-    @Body('title') title: string,
+    @Body() updateChatDto: UpdateChatDTO,
   ): Promise<ChatResponseDTO> {
     const apiKeyId = apiKey.role === AppRoles.CLIENT ? apiKey.id : undefined;
-    return this.conversationService.updateConversationTitle(
+    const updatedChat = await this.chatService.update(
       chatId,
-      title,
+      updateChatDto,
       apiKeyId,
     );
+
+    if (!updatedChat) {
+      throw new NotFoundException(`Chat with ID ${chatId} not found`);
+    }
+
+    return updatedChat;
   }
 }

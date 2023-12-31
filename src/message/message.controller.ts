@@ -11,45 +11,32 @@ import {
   ParseIntPipe,
   UseInterceptors,
   ClassSerializerInterceptor,
+  NotFoundException,
 } from '@nestjs/common';
 import { MessageService } from './message.service';
-import { CreateMessageDTO } from './dto/create-message.dto';
-import { UpdateMessageDTO } from './dto/update-message.dto';
+import { CreateMessageDTO } from './message-create.dto';
+import { UpdateMessageDTO } from './message-update.dto';
+import { MessageResponseDTO } from './message-response.dto';
+import { FindMessagesQueryDTO } from './message-find-query.dto';
+import { FindMessagesResponseDTO } from './message-find-response.dto';
 import { ApiKeyGuard } from 'src/guards/api-key.guard';
-import { AppRoles } from 'src/api-key/api-key.entity';
-import { Roles } from 'src/decorators/roles.decorator';
 import { RolesGuard } from 'src/guards/roles.guard';
 import { ChatIdGuard } from 'src/guards/chat-id.guard';
-import { MessageResponseDTO } from './dto/message-response.dto';
+import { Roles } from 'src/decorators/roles.decorator';
+import { AppRoles } from 'src/api-key/api-key.entity';
 import {
   ApiTags,
   ApiOperation,
-  ApiQuery,
-  ApiResponse,
-  ApiBody,
   ApiParam,
+  ApiBody,
   ApiSecurity,
+  ApiQuery,
 } from '@nestjs/swagger';
-import { ErrorResponseDTO } from 'src/dto/error-response.dto';
 import { ApiOkResponseWithWrapper } from 'src/decorators/api-ok-response-wrapper.decorator';
+import { CommonApiResponses } from 'src/decorators/common-api-responses.decorator';
 
 @ApiTags('Messages')
-@ApiResponse({
-  status: 400,
-  description: 'Bad Request',
-  type: ErrorResponseDTO,
-})
-@ApiResponse({
-  status: 401,
-  description: 'Unauthorized',
-  type: ErrorResponseDTO,
-})
-@ApiResponse({ status: 404, description: 'Not Found', type: ErrorResponseDTO })
-@ApiResponse({
-  status: 500,
-  description: 'Internal Server Error',
-  type: ErrorResponseDTO,
-})
+@CommonApiResponses()
 @ApiSecurity('apiKey')
 @Controller('chats/:chatId/messages')
 @UseGuards(ApiKeyGuard, RolesGuard, ChatIdGuard)
@@ -61,34 +48,23 @@ export class MessageController {
   @Roles(AppRoles.ADMIN)
   @ApiOperation({ summary: 'Retrieve a list of messages for a chat' })
   @ApiParam({ name: 'chatId', description: 'ID of the chat' })
-  @ApiQuery({
-    name: 'search',
-    required: false,
-    description: 'Search filter for messages',
-  })
-  @ApiQuery({
-    name: 'limit',
-    required: false,
-    description: 'Limit the number of results',
-  })
-  @ApiQuery({
-    name: 'offset',
-    required: false,
-    description: 'Offset for pagination',
-  })
+  @ApiQuery({ type: FindMessagesQueryDTO })
   @ApiOkResponseWithWrapper({
     description: 'List of messages',
     status: 200,
-    type: MessageResponseDTO,
-    isArray: true,
+    type: FindMessagesResponseDTO,
   })
   async findAll(
-    @Param('chatId', new ParseIntPipe()) chatId: number,
-    @Query('search') search?: string,
-    @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
-    @Query('offset', new ParseIntPipe({ optional: true })) offset?: number,
-  ): Promise<MessageResponseDTO[]> {
-    return await this.messageService.findAll(chatId, search, limit, offset);
+    @Param('chatId', ParseIntPipe) chatId: number,
+    @Query() query: FindMessagesQueryDTO,
+  ): Promise<FindMessagesResponseDTO> {
+    Object.assign(query, { chatId });
+    const messages = await this.messageService.findAll(query);
+
+    return {
+      ...query,
+      data: messages,
+    };
   }
 
   @Get(':messageId')
@@ -102,9 +78,16 @@ export class MessageController {
     type: MessageResponseDTO,
   })
   async findOne(
-    @Param('messageId', new ParseIntPipe()) messageId: number,
+    @Param('chatId', ParseIntPipe) chatId: number,
+    @Param('messageId', ParseIntPipe) messageId: number,
   ): Promise<MessageResponseDTO> {
-    return this.messageService.findOne(Number(messageId));
+    const message = await this.messageService.findOne(messageId);
+
+    if (!message) {
+      throw new NotFoundException(`Message with ID ${messageId} not found`);
+    }
+
+    return message;
   }
 
   @Post()
@@ -118,7 +101,7 @@ export class MessageController {
     type: MessageResponseDTO,
   })
   async create(
-    @Param('chatId', new ParseIntPipe()) chatId: number,
+    @Param('chatId', ParseIntPipe) chatId: number,
     @Body() createMessageDto: CreateMessageDTO,
   ): Promise<MessageResponseDTO> {
     return this.messageService.create(chatId, createMessageDto);
@@ -139,10 +122,20 @@ export class MessageController {
     type: MessageResponseDTO,
   })
   async update(
-    @Param('messageId', new ParseIntPipe()) messageId: number,
+    @Param('chatId', ParseIntPipe) chatId: number,
+    @Param('messageId', ParseIntPipe) messageId: number,
     @Body() updateMessageDto: UpdateMessageDTO,
   ): Promise<MessageResponseDTO> {
-    return this.messageService.update(messageId, updateMessageDto);
+    const updatedMessage = await this.messageService.update(
+      messageId,
+      updateMessageDto,
+    );
+
+    if (!updatedMessage) {
+      throw new NotFoundException(`Message with ID ${messageId} not found`);
+    }
+
+    return updatedMessage;
   }
 
   @Delete(':messageId')
@@ -155,8 +148,9 @@ export class MessageController {
     status: 200,
   })
   async delete(
-    @Param('messageId', new ParseIntPipe()) messageId: number,
+    @Param('chatId', ParseIntPipe) chatId: number,
+    @Param('messageId', ParseIntPipe) messageId: number,
   ): Promise<void> {
-    return this.messageService.delete(messageId);
+    await this.messageService.delete(messageId);
   }
 }

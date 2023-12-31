@@ -30,7 +30,7 @@ import {
   ApiSecurity,
 } from '@nestjs/swagger';
 import { ChatResponseDTO } from 'src/chat/chat-response.dto';
-import { MessageResponseDTO } from 'src/message/dto/message-response.dto';
+import { MessageResponseDTO } from 'src/message/message-response.dto';
 import { ErrorResponseDTO } from 'src/dto/error-response.dto';
 import { ApiOkResponseWithWrapper } from 'src/decorators/api-ok-response-wrapper.decorator';
 

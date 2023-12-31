@@ -1,5 +1,5 @@
 import { IsString, IsEnum, IsNotEmpty } from 'class-validator';
-import { MessageRoles } from '../message.entity';
+import { MessageRoles } from './message.entity';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateMessageDTO {

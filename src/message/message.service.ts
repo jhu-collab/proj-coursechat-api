@@ -1,9 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { Message } from './message.entity';
-import { UpdateMessageDTO } from './dto/update-message.dto';
-import { CreateMessageDTO } from './dto/create-message.dto';
+import { CreateMessageDTO } from './message-create.dto';
+import { UpdateMessageDTO } from './message-update.dto';
+import { FindMessagesQueryDTO } from './message-find-query.dto';
 
 @Injectable()
 export class MessageService {
@@ -12,69 +13,72 @@ export class MessageService {
     private messageRepository: Repository<Message>,
   ) {}
 
-  // pre: chatId is valid
-  async findAll(
-    chatId: number,
-    search?: string,
-    limit?: number,
-    offset?: number,
-  ): Promise<Message[]> {
-    const queryBuilder = this.messageRepository.createQueryBuilder('message');
+  async findAll(query: FindMessagesQueryDTO): Promise<Message[]> {
+    const { limit, offset, search, chatId } = query;
+    const content = search ? ILike(`%${search}%`) : undefined;
 
-    queryBuilder
-      .where('message.chatId=:chatId', { chatId })
-      .orderBy('message.createdAt', 'ASC');
+    const messages = await this.messageRepository.find({
+      take: limit,
+      skip: offset,
+      where: {
+        content: content,
+        chatId: chatId,
+      },
+      order: {
+        createdAt: 'ASC',
+      },
+    });
 
-    if (search) {
-      queryBuilder.andWhere('message.content ILIKE :search', {
-        search: `%${search}%`,
-      });
-    }
-
-    if (limit !== undefined) {
-      queryBuilder.limit(limit);
-    }
-
-    if (offset !== undefined) {
-      queryBuilder.offset(offset);
-    }
-
-    return await queryBuilder.getMany();
+    return messages;
   }
 
-  async findOne(messageId: number): Promise<Message> {
-    const message = await this.messageRepository.findOneBy({ id: messageId });
-    if (!message) {
-      throw new NotFoundException(`Message with ID ${messageId} not found`);
-    }
-    return message;
+  async findOne(messageId: number): Promise<Message | null> {
+    return this.messageRepository.findOne({
+      where: {
+        id: messageId,
+      },
+    });
   }
 
-  // pre: chatId is valid
   async create(
     chatId: number,
     createMessageDto: CreateMessageDTO,
   ): Promise<Message> {
-    const message = this.messageRepository.create(createMessageDto);
-    message.chatId = chatId;
-    return await this.messageRepository.save(message);
+    const message = this.messageRepository.create({
+      ...createMessageDto,
+      chatId,
+    });
+    return this.messageRepository.save(message);
   }
 
   async update(
     messageId: number,
     updateMessageDto: UpdateMessageDTO,
-  ): Promise<Message> {
-    const message = await this.findOne(messageId); // throws NotFoundException if not found
-    for (const key of Object.keys(updateMessageDto)) {
-      if (updateMessageDto[key] !== undefined) {
-        message[key] = updateMessageDto[key];
-      }
+  ): Promise<Message | null> {
+    const message = await this.messageRepository.preload({
+      id: messageId,
+      ...updateMessageDto,
+    });
+
+    if (!message) {
+      return null;
     }
-    return await this.messageRepository.save(message);
+
+    return this.messageRepository.save(message);
   }
 
-  async delete(messageId: number): Promise<void> {
-    const message = await this.findOne(messageId); // throws NotFoundException if not found
+  async delete(messageId: number): Promise<{ statusCode: number; message: string } {
+    const message = await this.findOne(messageId);
+
+    if (!message) {
+      return;
+    }
+
     await this.messageRepository.remove(message);
+
+    return {
+      statusCode: 200,
+      message: 'Chat deleted successfully',
+    };
   }
 }

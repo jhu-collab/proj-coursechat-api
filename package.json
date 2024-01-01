@@ -1,8 +1,8 @@
 {
   "name": "coursechat-api",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "description": "CourseChat is a platform for students to ask questions and get answers from AI teaching assistants. This is the API for the platform.",
+  "author": "Ali Madooei",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {

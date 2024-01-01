@@ -17,5 +17,5 @@ export class MessageResponseDTO {
   updatedAt: Date;
 
   @ApiProperty({ description: 'ID of the associated chat' })
-  chatId: number;
+  chatId: string;
 }

@@ -6,6 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { isUUID } from 'class-validator';
 import { ChatService } from 'src/chat/chat.service';
 
 @Injectable()
@@ -17,10 +18,10 @@ export class ChatIdGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    const chatId: number = Number(request.params.chatId);
+    const chatId: string = request.params.chatId;
 
     // If chatId is not provided or not a valid number
-    if (isNaN(chatId)) {
+    if (isUUID(chatId)) {
       throw new BadRequestException('Invalid or missing chatId');
     }
 

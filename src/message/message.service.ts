@@ -41,7 +41,7 @@ export class MessageService {
   }
 
   async create(
-    chatId: number,
+    chatId: string,
     createMessageDto: CreateMessageDTO,
   ): Promise<Message> {
     const message = this.messageRepository.create({
@@ -67,20 +67,13 @@ export class MessageService {
     return this.messageRepository.save(message);
   }
 
-  async delete(
-    messageId: number,
-  ): Promise<{ statusCode: number; message: string }> {
+  async delete(messageId: number): Promise<Message | null> {
     const message = await this.findOne(messageId);
 
     if (!message) {
       return;
     }
 
-    await this.messageRepository.remove(message);
-
-    return {
-      statusCode: 200,
-      message: 'Chat deleted successfully',
-    };
+    return this.messageRepository.remove(message);
   }
 }

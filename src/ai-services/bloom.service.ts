@@ -18,7 +18,7 @@ export class BloomService extends BaseAssistantService {
 
   public async generateResponse(
     input: string,
-    chatId: number,
+    chatId: string,
   ): Promise<string> {
     let context = '';
     if (chatId) {

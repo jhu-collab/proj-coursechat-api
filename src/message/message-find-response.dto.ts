@@ -13,7 +13,7 @@ export class FindMessagesResponseDTO {
   search?: string;
 
   @ApiPropertyOptional({ description: 'Filter by specific chat ID' })
-  chatId?: number;
+  chatId?: string;
 
   @ApiPropertyOptional({ description: 'Filter by message role' })
   role?: MessageRoles;

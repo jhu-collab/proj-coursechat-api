@@ -7,6 +7,7 @@ import {
   IsString,
   Max,
   IsEnum,
+  IsUUID,
 } from 'class-validator';
 import { MessageRoles } from './message.entity';
 
@@ -39,7 +40,7 @@ export class FindMessagesQueryDTO {
   role?: MessageRoles;
 
   @ApiPropertyOptional({ description: 'Filter by specific chat ID' })
-  @IsInt()
+  @IsUUID()
   @IsOptional()
-  chatId?: number;
+  chatId?: string;
 }

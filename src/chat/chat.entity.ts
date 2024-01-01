@@ -15,8 +15,8 @@ import { Assistant } from 'src/assistant/assistant.entity';
 
 @Entity('chats')
 export class Chat {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column({ length: 500 })
   title: string;

@@ -7,7 +7,6 @@ import {
   Patch,
   Query,
   UseGuards,
-  ParseIntPipe,
   UseInterceptors,
   ClassSerializerInterceptor,
   InternalServerErrorException,
@@ -199,7 +198,7 @@ export class ConversationController {
   })
   async continueConversation(
     @ApiKeyEntity() apiKey: ApiKey,
-    @Param('chatId', new ParseIntPipe()) chatId: number,
+    @Param('chatId') chatId: string,
     @Body() continueConversationDto: ContinueConversationDTO,
   ): Promise<ConversationResponseDTO> {
     const apiKeyId = apiKey.role === AppRoles.CLIENT ? apiKey.id : undefined;
@@ -277,7 +276,7 @@ export class ConversationController {
   })
   async updateConversationTitle(
     @ApiKeyEntity() apiKey: ApiKey,
-    @Param('chatId', new ParseIntPipe()) chatId: number,
+    @Param('chatId') chatId: string,
     @Body() updateChatDto: UpdateChatDTO,
   ): Promise<ChatResponseDTO> {
     const apiKeyId = apiKey.role === AppRoles.CLIENT ? apiKey.id : undefined;

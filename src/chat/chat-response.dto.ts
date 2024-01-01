@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class ChatResponseDTO {
   @ApiProperty({ description: 'ID of the chat' })
-  id: number;
+  id: string;
 
   @ApiProperty({ description: 'Title of the chat' })
   title: string;

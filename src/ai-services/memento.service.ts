@@ -24,7 +24,7 @@ remember the last few messages in the conversation history.`;
 
   public async generateResponse(
     input: string,
-    chatId?: number,
+    chatId?: string,
   ): Promise<string> {
     const { OpenAI } = await dynamicImport('langchain/llms/openai');
     const { HumanMessage, AIMessage } = await dynamicImport('langchain/schema');

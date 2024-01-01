@@ -33,7 +33,7 @@ export class ChatService {
     return chats;
   }
 
-  async findOne(chatId: number, apiKeyId?: string): Promise<Chat | null> {
+  async findOne(chatId: string, apiKeyId?: string): Promise<Chat | null> {
     return this.chatRepository.findOne({
       where: {
         id: chatId,
@@ -48,7 +48,7 @@ export class ChatService {
   }
 
   async update(
-    chatId: number,
+    chatId: string,
     updateChatDto: UpdateChatDTO,
     apiKeyId?: string,
   ): Promise<Chat | null> {
@@ -65,7 +65,7 @@ export class ChatService {
     return this.chatRepository.save(chat);
   }
 
-  async delete(chatId: number, apiKeyId?: string): Promise<Chat | null> {
+  async delete(chatId: string, apiKeyId?: string): Promise<Chat | null> {
     const chat = await this.findOne(chatId, apiKeyId);
 
     if (!chat) {

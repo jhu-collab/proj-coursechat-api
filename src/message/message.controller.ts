@@ -103,7 +103,7 @@ export class MessageController {
     type: MessageResponseDTO,
   })
   async create(
-    @Param('chatId', ParseIntPipe) chatId: number,
+    @Param('chatId') chatId: string,
     @Body() createMessageDto: CreateMessageDTO,
   ): Promise<MessageResponseDTO> {
     return this.messageService.create(chatId, createMessageDto);
@@ -124,7 +124,7 @@ export class MessageController {
     type: MessageResponseDTO,
   })
   async update(
-    @Param('chatId', ParseIntPipe) chatId: number,
+    @Param('chatId') chatId: string,
     @Param('messageId', ParseIntPipe) messageId: number,
     @Body() updateMessageDto: UpdateMessageDTO,
   ): Promise<MessageResponseDTO> {
@@ -150,9 +150,18 @@ export class MessageController {
     status: 200,
   })
   async delete(
-    @Param('chatId', ParseIntPipe) chatId: number,
+    @Param('chatId') chatId: string,
     @Param('messageId', ParseIntPipe) messageId: number,
-  ): Promise<void> {
-    await this.messageService.delete(messageId);
+  ): Promise<{ statusCode: number; message: string }> {
+    const message = await this.messageService.delete(messageId);
+
+    if (!message) {
+      throw new NotFoundException(`Message with ID ${messageId} not found`);
+    }
+
+    return {
+      statusCode: 200,
+      message: 'Message deleted successfully',
+    };
   }
 }

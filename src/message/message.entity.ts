@@ -47,6 +47,6 @@ export class Message {
   chat: Chat;
 
   @Index()
-  @Column()
-  chatId: number;
+  @Column({ type: 'uuid' })
+  chatId: string;
 }

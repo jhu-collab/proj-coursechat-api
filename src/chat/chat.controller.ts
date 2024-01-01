@@ -8,7 +8,6 @@ import {
   Put,
   Query,
   UseGuards,
-  ParseIntPipe,
   UseInterceptors,
   ClassSerializerInterceptor,
   NotFoundException,
@@ -78,13 +77,13 @@ export class ChatController {
     status: 200,
     type: ChatResponseDTO,
   })
-  async findOne(
-    @Param('chatId', ParseIntPipe) chatId: number,
-  ): Promise<ChatResponseDTO> {
+  async findOne(@Param('chatId') chatId: string): Promise<ChatResponseDTO> {
     const chat = await this.chatService.findOne(chatId);
+
     if (!chat) {
       throw new NotFoundException(`Chat with ID ${chatId} not found`);
     }
+
     return chat;
   }
 
@@ -115,13 +114,15 @@ export class ChatController {
     type: ChatResponseDTO,
   })
   async update(
-    @Param('chatId', ParseIntPipe) chatId: number,
+    @Param('chatId') chatId: string,
     @Body() updateChatDto: UpdateChatDTO,
   ): Promise<ChatResponseDTO> {
     const updatedChat = await this.chatService.update(chatId, updateChatDto);
+
     if (!updatedChat) {
       throw new NotFoundException(`Chat with ID ${chatId} not found`);
     }
+
     return updatedChat;
   }
 
@@ -134,12 +135,14 @@ export class ChatController {
     status: 200,
   })
   async delete(
-    @Param('chatId', ParseIntPipe) chatId: number,
+    @Param('chatId') chatId: string,
   ): Promise<{ statusCode: number; message: string }> {
     const chat = await this.chatService.findOne(chatId);
+
     if (!chat) {
       throw new NotFoundException(`Chat with ID ${chatId} not found`);
     }
+
     await this.chatService.delete(chatId);
 
     return {

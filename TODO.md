@@ -1,4 +1,3 @@
-- Make all the IDs for the entities in the app UUIDs.
 - Double check the length of all the fields in the database.
 - Write end-to-end tests for all the endpoints.
 - Write unit tests for all the services and controllers.

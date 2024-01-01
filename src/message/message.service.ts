@@ -32,7 +32,7 @@ export class MessageService {
     return messages;
   }
 
-  async findOne(messageId: number): Promise<Message | null> {
+  async findOne(messageId: string): Promise<Message | null> {
     return this.messageRepository.findOne({
       where: {
         id: messageId,
@@ -52,7 +52,7 @@ export class MessageService {
   }
 
   async update(
-    messageId: number,
+    messageId: string,
     updateMessageDto: UpdateMessageDTO,
   ): Promise<Message | null> {
     const message = await this.messageRepository.preload({
@@ -67,7 +67,7 @@ export class MessageService {
     return this.messageRepository.save(message);
   }
 
-  async delete(messageId: number): Promise<Message | null> {
+  async delete(messageId: string): Promise<Message | null> {
     const message = await this.findOne(messageId);
 
     if (!message) {

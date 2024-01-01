@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class MessageResponseDTO {
   @ApiProperty({ description: 'ID of the message' })
-  id: number;
+  id: string;
 
   @ApiProperty({ description: 'Content of the message' })
   content: string;

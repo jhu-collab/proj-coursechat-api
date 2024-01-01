@@ -8,7 +8,6 @@ import {
   Put,
   Query,
   UseGuards,
-  ParseIntPipe,
   UseInterceptors,
   ClassSerializerInterceptor,
   NotFoundException,
@@ -57,7 +56,7 @@ export class MessageController {
   })
   @UseInterceptors(DefaultPaginationInterceptor)
   async findAll(
-    @Param('chatId', ParseIntPipe) chatId: number,
+    @Param('chatId') chatId: string,
     @Query() query: FindMessagesQueryDTO,
   ): Promise<FindMessagesResponseDTO> {
     Object.assign(query, { chatId });
@@ -80,8 +79,8 @@ export class MessageController {
     type: MessageResponseDTO,
   })
   async findOne(
-    @Param('chatId', ParseIntPipe) chatId: number,
-    @Param('messageId', ParseIntPipe) messageId: number,
+    @Param('chatId') chatId: string,
+    @Param('messageId') messageId: string,
   ): Promise<MessageResponseDTO> {
     const message = await this.messageService.findOne(messageId);
 
@@ -125,7 +124,7 @@ export class MessageController {
   })
   async update(
     @Param('chatId') chatId: string,
-    @Param('messageId', ParseIntPipe) messageId: number,
+    @Param('messageId') messageId: string,
     @Body() updateMessageDto: UpdateMessageDTO,
   ): Promise<MessageResponseDTO> {
     const updatedMessage = await this.messageService.update(
@@ -151,7 +150,7 @@ export class MessageController {
   })
   async delete(
     @Param('chatId') chatId: string,
-    @Param('messageId', ParseIntPipe) messageId: number,
+    @Param('messageId') messageId: string,
   ): Promise<{ statusCode: number; message: string }> {
     const message = await this.messageService.delete(messageId);
 

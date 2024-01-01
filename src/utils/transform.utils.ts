@@ -40,10 +40,10 @@
  * @returns - A boolean value if the key exists and is either 'true' or 'false',
  *            or `undefined` if the key doesn't exist or the value is not 'true'/'false'.
  */
-export const booleanStringTransform = (
+export function booleanStringTransform(
   obj: any,
   key: string,
-): boolean | undefined => {
+): boolean | undefined {
   if (key in obj) {
     return obj[key] === 'true'
       ? true
@@ -52,4 +52,4 @@ export const booleanStringTransform = (
       : undefined;
   }
   return undefined;
-};
+}

@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { MessageResponseDTO } from './message-response.dto';
-import { MessageRoles } from './message.entity';
+import { MessageRoles } from './message-roles.enum';
 
 export class FindMessagesResponseDTO {
   @ApiProperty({ description: 'Limit the number of results' })

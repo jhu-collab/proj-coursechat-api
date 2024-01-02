@@ -10,13 +10,7 @@ import {
   UpdateDateColumn,
   Index,
 } from 'typeorm';
-
-export enum MessageRoles {
-  SYSTEM = 'system',
-  USER = 'user',
-  ASSISTANT = 'assistant',
-  FUNCTION = 'function',
-}
+import { MessageRoles } from './message-roles.enum';
 
 @Entity('messages')
 export class Message {
@@ -39,7 +33,6 @@ export class Message {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @Exclude()
   @ManyToOne(() => Chat, (chat) => chat.messages, {
     onDelete: 'CASCADE',
   })

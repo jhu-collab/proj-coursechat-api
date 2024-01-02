@@ -41,7 +41,7 @@ import { MessageService } from 'src/message/message.service';
 import { AssistantManagerService } from 'src/ai-services/assistant-manager.service';
 import { FindMessagesResponseDTO } from 'src/message/message-find-response.dto';
 import { FindMessagesQueryDTO } from 'src/message/message-find-query.dto';
-import { MessageRoles } from 'src/message/message.entity';
+import { MessageRoles } from 'src/message/message-roles.enum';
 import { UpdateChatDTO } from 'src/chat/chat-update.dto';
 import { Cache } from 'cache-manager';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';

@@ -9,7 +9,7 @@ import {
   IsEnum,
   IsUUID,
 } from 'class-validator';
-import { MessageRoles } from './message.entity';
+import { MessageRoles } from './message-roles.enum';
 
 export class FindMessagesQueryDTO {
   @ApiPropertyOptional({ description: 'Limit the number of results' })

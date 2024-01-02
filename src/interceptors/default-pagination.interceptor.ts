@@ -6,19 +6,19 @@ import {
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { SortOrder } from 'src/dto/sort-order.enum';
 
 @Injectable()
 export class DefaultPaginationInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const request = context.switchToHttp().getRequest();
 
-    if (request.query.limit === undefined) {
-      request.query.limit = 50; // Default limit
-    }
+    // Set default limit and offset
+    request.query.limit = request.query.limit ?? 50;
+    request.query.offset = request.query.offset ?? 0;
 
-    if (request.query.offset === undefined) {
-      request.query.offset = 0; // Default offset
-    }
+    // Set default sorting order to descending
+    request.query.sortOrder = request.query.sortOrder ?? SortOrder.DESC;
 
     return next.handle().pipe(map((data) => data));
   }

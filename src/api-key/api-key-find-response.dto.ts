@@ -1,16 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ApiKeyResponseDTO } from './api-key-response.dto';
+import { FindResponseDTO } from 'src/dto/find-response.dto';
 
-export class FindApiKeysResponseDTO {
-  @ApiProperty({ description: 'Limit the number of results' })
-  limit?: number;
-
-  @ApiProperty({ description: 'Offset for pagination' })
-  offset?: number;
-
-  @ApiPropertyOptional({ description: 'Search filter for API keys' })
-  search?: string;
-
+export class FindApiKeysResponseDTO extends FindResponseDTO {
   @ApiPropertyOptional({ description: 'Include soft-deleted API keys' })
   withDeleted?: boolean;
 

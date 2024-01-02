@@ -1,36 +1,9 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  IsInt,
-  IsOptional,
-  IsPositive,
-  Min,
-  IsString,
-  Max,
-  IsEnum,
-  IsUUID,
-} from 'class-validator';
+import { IsOptional, IsEnum, IsUUID } from 'class-validator';
 import { MessageRoles } from './message-roles.enum';
+import { FindQueryDTO } from 'src/dto/find-query.dto';
 
-export class FindMessagesQueryDTO {
-  @ApiPropertyOptional({ description: 'Limit the number of results' })
-  @IsInt()
-  @IsPositive()
-  @Min(1)
-  @Max(100)
-  @IsOptional()
-  limit?: number;
-
-  @ApiPropertyOptional({ description: 'Offset for pagination' })
-  @IsInt()
-  @Min(0)
-  @IsOptional()
-  offset?: number;
-
-  @ApiPropertyOptional({ description: 'Search filter for message content' })
-  @IsString()
-  @IsOptional()
-  search?: string;
-
+export class FindMessagesQueryDTO extends FindQueryDTO {
   @ApiPropertyOptional({
     description: 'Filter by message role',
     enum: MessageRoles,

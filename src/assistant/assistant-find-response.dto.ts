@@ -1,16 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { AssistantResponseDTO } from './assistant-response.dto';
+import { FindResponseDTO } from 'src/dto/find-response.dto';
 
-export class FindAssistantsResponseDTO {
-  @ApiProperty({ description: 'Limit the number of results' })
-  limit?: number;
-
-  @ApiProperty({ description: 'Offset for pagination' })
-  offset?: number;
-
-  @ApiPropertyOptional({ description: 'Search filter for assistants' })
-  search?: string;
-
+export class FindAssistantsResponseDTO extends FindResponseDTO {
   @ApiPropertyOptional({ description: 'Include soft-deleted assistants' })
   withDeleted?: boolean;
 

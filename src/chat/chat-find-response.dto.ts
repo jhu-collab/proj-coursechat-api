@@ -1,16 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ChatResponseDTO } from './chat-response.dto';
+import { FindResponseDTO } from 'src/dto/find-response.dto';
 
-export class FindChatsResponseDTO {
-  @ApiProperty({ description: 'Limit the number of results' })
-  limit?: number;
-
-  @ApiProperty({ description: 'Offset for pagination' })
-  offset?: number;
-
-  @ApiPropertyOptional({ description: 'Search filter for chats' })
-  search?: string;
-
+export class FindChatsResponseDTO extends FindResponseDTO {
   @ApiPropertyOptional({ description: 'Filter by specific API key ID' })
   apiKeyId?: string;
 

@@ -1,4 +1,3 @@
-import { Exclude } from 'class-transformer';
 import { Chat } from 'src/chat/chat.entity';
 import {
   Entity,

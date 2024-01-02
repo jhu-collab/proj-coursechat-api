@@ -144,7 +144,8 @@ export class ConversationController {
     @ApiKeyEntity() apiKey: ApiKey,
   ): Promise<ConversationResponseDTO> {
     try {
-      const apiKeyId = apiKey.role === ApiKeyRoles.CLIENT ? apiKey.id : undefined;
+      const apiKeyId =
+        apiKey.role === ApiKeyRoles.CLIENT ? apiKey.id : undefined;
       const { message, ...createChatDto } = startConversationDto;
       const chat = await this.chatService.create(apiKeyId, createChatDto);
 

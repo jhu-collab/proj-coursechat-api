@@ -22,7 +22,7 @@ import { ApiKeyGuard } from 'src/guards/api-key.guard';
 import { RolesGuard } from 'src/guards/roles.guard';
 import { ChatIdGuard } from 'src/guards/chat-id.guard';
 import { Roles } from 'src/decorators/roles.decorator';
-import { AppRoles } from 'src/api-key/api-key.entity';
+import { ApiKeyRoles } from 'src/api-key/api-key-roles.enum';
 import {
   ApiTags,
   ApiOperation,
@@ -45,7 +45,7 @@ export class MessageController {
   constructor(private readonly messageService: MessageService) {}
 
   @Get()
-  @Roles(AppRoles.ADMIN)
+  @Roles(ApiKeyRoles.ADMIN)
   @ApiOperation({ summary: 'Retrieve a list of messages for a chat' })
   @ApiParam({ name: 'chatId', description: 'ID of the chat' })
   @ApiQuery({ type: FindMessagesQueryDTO })
@@ -69,7 +69,7 @@ export class MessageController {
   }
 
   @Get(':messageId')
-  @Roles(AppRoles.ADMIN)
+  @Roles(ApiKeyRoles.ADMIN)
   @ApiOperation({ summary: 'Retrieve a specific message by ID' })
   @ApiParam({ name: 'chatId', description: 'ID of the chat' })
   @ApiParam({ name: 'messageId', description: 'ID of the message to retrieve' })
@@ -92,7 +92,7 @@ export class MessageController {
   }
 
   @Post()
-  @Roles(AppRoles.ADMIN)
+  @Roles(ApiKeyRoles.ADMIN)
   @ApiOperation({ summary: 'Create a new message for a chat' })
   @ApiParam({ name: 'chatId', description: 'ID of the chat' })
   @ApiBody({ type: CreateMessageDTO, description: 'Message details' })
@@ -109,7 +109,7 @@ export class MessageController {
   }
 
   @Put(':messageId')
-  @Roles(AppRoles.ADMIN)
+  @Roles(ApiKeyRoles.ADMIN)
   @ApiOperation({ summary: 'Update a message by ID' })
   @ApiParam({ name: 'chatId', description: 'ID of the chat' })
   @ApiParam({ name: 'messageId', description: 'ID of the message to update' })
@@ -140,7 +140,7 @@ export class MessageController {
   }
 
   @Delete(':messageId')
-  @Roles(AppRoles.ADMIN)
+  @Roles(ApiKeyRoles.ADMIN)
   @ApiOperation({ summary: 'Delete a message by ID' })
   @ApiParam({ name: 'chatId', description: 'ID of the chat' })
   @ApiParam({ name: 'messageId', description: 'ID of the message to delete' })

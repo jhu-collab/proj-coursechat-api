@@ -9,11 +9,7 @@ import {
   OneToMany,
   DeleteDateColumn,
 } from 'typeorm';
-
-export enum AppRoles {
-  ADMIN = 'admin',
-  CLIENT = 'client',
-}
+import { ApiKeyRoles } from './api-key-roles.enum';
 
 @Entity('api_keys')
 export class ApiKey {
@@ -39,6 +35,6 @@ export class ApiKey {
   @OneToMany(() => Chat, (chat) => chat.apiKey)
   chats: Chat[];
 
-  @Column({ type: 'enum', enum: AppRoles, default: AppRoles.CLIENT })
-  role: AppRoles;
+  @Column({ type: 'enum', enum: ApiKeyRoles, default: ApiKeyRoles.CLIENT })
+  role: ApiKeyRoles;
 }

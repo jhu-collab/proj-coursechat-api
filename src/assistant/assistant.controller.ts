@@ -31,7 +31,7 @@ import {
 import { ApiOkResponseWithWrapper } from 'src/decorators/api-ok-response-wrapper.decorator';
 import { FindAssistantsQueryDTO } from './assistant-find-query.dto';
 import { FindAssistantsResponseDTO } from './assistant-find-response.dto';
-import { AppRoles } from 'src/api-key/api-key.entity';
+import { ApiKeyRoles } from 'src/api-key/api-key-roles.enum';
 import { CommonApiResponses } from 'src/decorators/common-api-responses.decorator';
 import { DefaultPaginationInterceptor } from 'src/interceptors/default-pagination.interceptor';
 
@@ -45,7 +45,7 @@ export class AssistantController {
   constructor(private readonly assistantService: AssistantService) {}
 
   @Get()
-  @Roles(AppRoles.ADMIN)
+  @Roles(ApiKeyRoles.ADMIN)
   @ApiOperation({ summary: 'Retrieve a list of assistants' })
   @ApiQuery({
     type: FindAssistantsQueryDTO,
@@ -68,7 +68,7 @@ export class AssistantController {
   }
 
   @Get(':name')
-  @Roles(AppRoles.ADMIN)
+  @Roles(ApiKeyRoles.ADMIN)
   @ApiOperation({ summary: 'Retrieve a specific assistant by name' })
   @ApiParam({ name: 'name', description: 'Name of the assistant to retrieve' })
   @ApiOkResponseWithWrapper({
@@ -87,7 +87,7 @@ export class AssistantController {
   }
 
   @Post()
-  @Roles(AppRoles.ADMIN)
+  @Roles(ApiKeyRoles.ADMIN)
   @ApiOperation({ summary: 'Create a new assistant' })
   @ApiBody({ type: CreateAssistantDTO, description: 'Assistant details' })
   @ApiOkResponseWithWrapper({
@@ -102,7 +102,7 @@ export class AssistantController {
   }
 
   @Put(':name')
-  @Roles(AppRoles.ADMIN)
+  @Roles(ApiKeyRoles.ADMIN)
   @ApiOperation({ summary: 'Update an existing assistant by name' })
   @ApiParam({ name: 'name', description: 'Name of the assistant to update' })
   @ApiBody({
@@ -131,7 +131,7 @@ export class AssistantController {
   }
 
   @Delete(':name')
-  @Roles(AppRoles.ADMIN)
+  @Roles(ApiKeyRoles.ADMIN)
   @ApiOperation({ summary: 'Delete an assistant by name' })
   @ApiParam({ name: 'name', description: 'Name of the assistant to delete' })
   @ApiOkResponseWithWrapper({

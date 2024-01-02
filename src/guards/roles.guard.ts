@@ -1,13 +1,14 @@
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { ApiKey, AppRoles } from 'src/api-key/api-key.entity';
+import { ApiKey } from 'src/api-key/api-key.entity';
+import { ApiKeyRoles } from 'src/api-key/api-key-roles.enum';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const requiredRoles = this.reflector.getAllAndOverride<AppRoles[]>(
+    const requiredRoles = this.reflector.getAllAndOverride<ApiKeyRoles[]>(
       'roles',
       [context.getHandler(), context.getClass()],
     );

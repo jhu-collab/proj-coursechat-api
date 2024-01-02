@@ -1,5 +1,5 @@
 import { SetMetadata } from '@nestjs/common';
-import { AppRoles } from 'src/api-key/api-key.entity';
+import { ApiKeyRoles } from 'src/api-key/api-key-roles.enum';
 
 export const ROLES_KEY = 'roles';
-export const Roles = (...roles: AppRoles[]) => SetMetadata(ROLES_KEY, roles);
+export const Roles = (...roles: ApiKeyRoles[]) => SetMetadata(ROLES_KEY, roles);

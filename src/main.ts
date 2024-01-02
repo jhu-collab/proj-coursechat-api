@@ -5,7 +5,7 @@ import { HttpResponseFilter } from './filters/http-response.filter';
 import { HttpResponseInterceptor } from './interceptors/http-response.interceptor';
 import helmet from 'helmet';
 import { ApiKeyService } from './api-key/api-key.service';
-import { AppRoles } from './api-key/api-key.entity';
+import { ApiKeyRoles } from './api-key/api-key-roles.enum';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 async function bootstrap() {
@@ -64,12 +64,12 @@ async function bootstrap() {
 
   try {
     const apiKeyService = app.get(ApiKeyService);
-    const adminKey = await apiKeyService.findByRole(AppRoles.ADMIN);
-    if (!adminKey) {
+    const adminKey = await apiKeyService.findByRole(ApiKeyRoles.ADMIN);
+    if (adminKey.length === 0) {
       logger.log('No admin API key found. Creating one...');
       await apiKeyService.create({
         description: 'Automatically generated admin API key',
-        role: AppRoles.ADMIN,
+        role: ApiKeyRoles.ADMIN,
       });
       logger.log('Admin API key created.');
     }

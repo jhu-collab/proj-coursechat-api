@@ -32,7 +32,8 @@ import {
 import { ApiOkResponseWithWrapper } from 'src/decorators/api-ok-response-wrapper.decorator';
 import { FindChatsQueryDTO } from './chat-find-query.dto';
 import { FindChatsResponseDTO } from './chat-find-response.dto';
-import { ApiKey, AppRoles } from 'src/api-key/api-key.entity';
+import { ApiKey } from 'src/api-key/api-key.entity';
+import { ApiKeyRoles } from 'src/api-key/api-key-roles.enum';
 import { CommonApiResponses } from 'src/decorators/common-api-responses.decorator';
 import { DefaultPaginationInterceptor } from 'src/interceptors/default-pagination.interceptor';
 
@@ -46,7 +47,7 @@ export class ChatController {
   constructor(private chatService: ChatService) {}
 
   @Get()
-  @Roles(AppRoles.ADMIN)
+  @Roles(ApiKeyRoles.ADMIN)
   @ApiOperation({ summary: 'Retrieve a list of chats' })
   @ApiQuery({
     type: FindChatsQueryDTO,
@@ -69,7 +70,7 @@ export class ChatController {
   }
 
   @Get(':chatId')
-  @Roles(AppRoles.ADMIN)
+  @Roles(ApiKeyRoles.ADMIN)
   @ApiOperation({ summary: 'Retrieve a specific chat by ID' })
   @ApiParam({ name: 'chatId', description: 'ID of the chat to retrieve' })
   @ApiOkResponseWithWrapper({
@@ -88,7 +89,7 @@ export class ChatController {
   }
 
   @Post()
-  @Roles(AppRoles.ADMIN)
+  @Roles(ApiKeyRoles.ADMIN)
   @ApiOperation({ summary: 'Create a new chat' })
   @ApiBody({ type: CreateChatDTO, description: 'Chat details' })
   @ApiOkResponseWithWrapper({
@@ -104,7 +105,7 @@ export class ChatController {
   }
 
   @Put(':chatId')
-  @Roles(AppRoles.ADMIN)
+  @Roles(ApiKeyRoles.ADMIN)
   @ApiOperation({ summary: 'Update a chat by ID' })
   @ApiParam({ name: 'chatId', description: 'ID of the chat to update' })
   @ApiBody({ type: UpdateChatDTO, description: 'Updated details for the chat' })
@@ -127,7 +128,7 @@ export class ChatController {
   }
 
   @Delete(':chatId')
-  @Roles(AppRoles.ADMIN)
+  @Roles(ApiKeyRoles.ADMIN)
   @ApiOperation({ summary: 'Delete a chat by ID' })
   @ApiParam({ name: 'chatId', description: 'ID of the chat to delete' })
   @ApiOkResponseWithWrapper({

@@ -13,7 +13,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ApiKeyService } from './api-key.service';
-import { ApiKey, AppRoles } from './api-key.entity';
+import { ApiKey } from './api-key.entity';
+import { ApiKeyRoles } from './api-key-roles.enum';
 import { CreateApiKeyDTO } from './api-key-create.dto';
 import { UpdateApiKeyDTO } from './api-key-update.dto';
 import { Roles } from 'src/decorators/roles.decorator';
@@ -44,7 +45,7 @@ export class ApiKeyController {
   constructor(private readonly apiKeyService: ApiKeyService) {}
 
   @Get()
-  @Roles(AppRoles.ADMIN)
+  @Roles(ApiKeyRoles.ADMIN)
   @ApiOperation({ summary: 'Retrieve a list of API keys' })
   @ApiQuery({
     type: FindApiKeysQueryDTO,
@@ -67,7 +68,7 @@ export class ApiKeyController {
   }
 
   @Get(':apiKeyId')
-  @Roles(AppRoles.ADMIN)
+  @Roles(ApiKeyRoles.ADMIN)
   @ApiOperation({ summary: 'Retrieve a specific API key by ID' })
   @ApiParam({ name: 'apiKeyId', description: 'ID of the API key to retrieve' })
   @ApiOkResponseWithWrapper({
@@ -88,7 +89,7 @@ export class ApiKeyController {
   }
 
   @Post()
-  @Roles(AppRoles.ADMIN)
+  @Roles(ApiKeyRoles.ADMIN)
   @ApiOperation({ summary: 'Create a new API key' })
   @ApiBody({ type: CreateApiKeyDTO, description: 'API key details' })
   @ApiOkResponseWithWrapper({
@@ -103,7 +104,7 @@ export class ApiKeyController {
   }
 
   @Put(':apiKeyId')
-  @Roles(AppRoles.ADMIN)
+  @Roles(ApiKeyRoles.ADMIN)
   @ApiOperation({ summary: 'Update an existing API key by ID' })
   @ApiParam({ name: 'apiKeyId', description: 'ID of the API key to update' })
   @ApiBody({
@@ -132,7 +133,7 @@ export class ApiKeyController {
   }
 
   @Delete(':apiKeyId')
-  @Roles(AppRoles.ADMIN)
+  @Roles(ApiKeyRoles.ADMIN)
   @ApiOperation({ summary: 'Delete an API key by ID' })
   @ApiParam({ name: 'apiKeyId', description: 'ID of the API key to delete' })
   @ApiOkResponseWithWrapper({

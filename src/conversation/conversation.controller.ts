@@ -19,7 +19,8 @@ import { ApiKeyGuard } from 'src/guards/api-key.guard';
 import { ApiKeyEntity } from 'src/decorators/api-key.decorator';
 import { ConversationResponseDTO } from './conversation-response.dto';
 import { Roles } from 'src/decorators/roles.decorator';
-import { ApiKey, AppRoles } from 'src/api-key/api-key.entity';
+import { ApiKey } from 'src/api-key/api-key.entity';
+import { ApiKeyRoles } from 'src/api-key/api-key-roles.enum';
 import { RolesGuard } from 'src/guards/roles.guard';
 import {
   ApiTags,
@@ -61,7 +62,7 @@ export class ConversationController {
   ) {}
 
   @Get()
-  @Roles(AppRoles.ADMIN, AppRoles.CLIENT)
+  @Roles(ApiKeyRoles.ADMIN, ApiKeyRoles.CLIENT)
   @ApiOperation({
     summary:
       'Fetch all conversations for an API key or all conversations for ADMIN',
@@ -88,7 +89,7 @@ export class ConversationController {
   }
 
   @Get(':chatId/messages')
-  @Roles(AppRoles.ADMIN, AppRoles.CLIENT)
+  @Roles(ApiKeyRoles.ADMIN, ApiKeyRoles.CLIENT)
   @ApiOperation({
     summary: 'Retrieve all messages within a specific conversation (chat)',
   })
@@ -103,7 +104,7 @@ export class ConversationController {
     @ApiKeyEntity() apiKey: ApiKey,
     @Query() query: FindMessagesQueryDTO,
   ): Promise<FindMessagesResponseDTO> {
-    const apiKeyId = apiKey.role === AppRoles.CLIENT ? apiKey.id : undefined;
+    const apiKeyId = apiKey.role === ApiKeyRoles.CLIENT ? apiKey.id : undefined;
     const { limit, offset, search, chatId } = query;
     const chat = await this.chatService.findOne(chatId, apiKeyId);
 
@@ -127,7 +128,7 @@ export class ConversationController {
   }
 
   @Post('start')
-  @Roles(AppRoles.ADMIN, AppRoles.CLIENT)
+  @Roles(ApiKeyRoles.ADMIN, ApiKeyRoles.CLIENT)
   @ApiOperation({
     summary: 'Initiate a new conversation and get the initial AI response',
   })
@@ -143,7 +144,7 @@ export class ConversationController {
     @ApiKeyEntity() apiKey: ApiKey,
   ): Promise<ConversationResponseDTO> {
     try {
-      const apiKeyId = apiKey.role === AppRoles.CLIENT ? apiKey.id : undefined;
+      const apiKeyId = apiKey.role === ApiKeyRoles.CLIENT ? apiKey.id : undefined;
       const { message, ...createChatDto } = startConversationDto;
       const chat = await this.chatService.create(apiKeyId, createChatDto);
 
@@ -184,7 +185,7 @@ export class ConversationController {
   }
 
   @Post(':chatId/continue')
-  @Roles(AppRoles.ADMIN, AppRoles.CLIENT)
+  @Roles(ApiKeyRoles.ADMIN, ApiKeyRoles.CLIENT)
   @ApiOperation({
     summary:
       'Continue an existing conversation by adding a user message and getting the AI response',
@@ -201,7 +202,7 @@ export class ConversationController {
     @Param('chatId') chatId: string,
     @Body() continueConversationDto: ContinueConversationDTO,
   ): Promise<ConversationResponseDTO> {
-    const apiKeyId = apiKey.role === AppRoles.CLIENT ? apiKey.id : undefined;
+    const apiKeyId = apiKey.role === ApiKeyRoles.CLIENT ? apiKey.id : undefined;
     // Try to get the chat from cache
     const chatCacheKey = `chat_${chatId}`;
     let chat = await this.cacheManager.get<Chat>(chatCacheKey);
@@ -265,7 +266,7 @@ export class ConversationController {
   }
 
   @Patch(':chatId/title')
-  @Roles(AppRoles.ADMIN, AppRoles.CLIENT)
+  @Roles(ApiKeyRoles.ADMIN, ApiKeyRoles.CLIENT)
   @ApiOperation({ summary: 'Update the title of a specific conversation' })
   @ApiParam({ name: 'chatId', description: 'Chat ID' })
   @ApiBody({ type: UpdateChatDTO, description: 'Updated details for the chat' })
@@ -279,7 +280,7 @@ export class ConversationController {
     @Param('chatId') chatId: string,
     @Body() updateChatDto: UpdateChatDTO,
   ): Promise<ChatResponseDTO> {
-    const apiKeyId = apiKey.role === AppRoles.CLIENT ? apiKey.id : undefined;
+    const apiKeyId = apiKey.role === ApiKeyRoles.CLIENT ? apiKey.id : undefined;
     const updatedChat = await this.chatService.update(
       chatId,
       updateChatDto,

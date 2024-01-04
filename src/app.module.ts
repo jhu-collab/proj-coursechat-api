@@ -27,9 +27,13 @@ import { ElephantService } from './ai-services/elephant.service';
 import { MementoService } from './ai-services/memento.service';
 import { FinchService } from './ai-services/finch.service';
 import { validate } from './env.validation';
+import { DevtoolsModule } from '@nestjs/devtools-integration';
 
 @Module({
   imports: [
+    DevtoolsModule.register({
+      http: process.env.NODE_ENV !== 'production',
+    }),
     CacheModule.register({
       ttl: 5, // seconds
       max: 10, // maximum number of items in cache

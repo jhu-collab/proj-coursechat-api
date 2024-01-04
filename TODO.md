@@ -6,3 +6,6 @@
 - Implement streaming for the conversation endpoint.
 - Make sure the dev dependencies are only installed in the dev environment.
 - Add logging to all the operations.
+- Should we allow images in the messages?
+- Add a rate limiter to the conversation endpoint.
+- Vectorize the messages before (or after) storing them in the database.

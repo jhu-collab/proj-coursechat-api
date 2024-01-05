@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { BaseAssistantService } from './base-assistant.service';
 import { MessageService } from 'src/message/message.service';
 import { dynamicImport } from 'src/utils/dynamic-import.utils';
+import { MessageRoles } from 'src/message/message-roles.enum';
 
 @Injectable()
 export class BloomService extends BaseAssistantService {
@@ -97,13 +98,13 @@ export class BloomService extends BaseAssistantService {
     if (chatId) {
       await this.messageService.create(chatId, {
         content: input,
-        role: 'user',
+        role: MessageRoles.USER,
       });
 
       if (response.text) {
         await this.messageService.create(chatId, {
           content: response.text,
-          role: 'assistant',
+          role: MessageRoles.ASSISTANT,
         });
       }
 

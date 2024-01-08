@@ -17,7 +17,6 @@ import { AssistantService } from './assistant/assistant.service';
 import { AssistantController } from './assistant/assistant.controller';
 import { Assistant } from './assistant/assistant.entity';
 import { ExtractApiKeyMiddleware } from './middleware/extract-api-key.middleware';
-import { ConversationService } from './conversation/conversation.service';
 import { ConversationController } from './conversation/conversation.controller';
 import { AssistantManagerService } from './ai-services/assistant-manager.service';
 import { ParrotService } from './ai-services/parrot.service';
@@ -27,14 +26,21 @@ import { BloomService } from './ai-services/bloom.service';
 import { ElephantService } from './ai-services/elephant.service';
 import { MementoService } from './ai-services/memento.service';
 import { FinchService } from './ai-services/finch.service';
+import { validate } from './env.validation';
+import { DevtoolsModule } from '@nestjs/devtools-integration';
 
 @Module({
   imports: [
+    DevtoolsModule.register({
+      http: process.env.NODE_ENV !== 'production',
+    }),
     CacheModule.register({
       ttl: 5, // seconds
       max: 10, // maximum number of items in cache
     }),
-    ConfigModule.forRoot(), // Load the .env file
+    ConfigModule.forRoot({
+      validate, // Validate the .env file
+    }), // Loads the .env file
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
@@ -65,7 +71,6 @@ import { FinchService } from './ai-services/finch.service';
     MessageService,
     ApiKeyService,
     AssistantService,
-    ConversationService,
     AssistantManagerService,
     ParrotService,
     DoryService,

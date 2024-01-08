@@ -24,7 +24,7 @@ remember the last few messages in the conversation history.`;
 
   public async generateResponse(
     input: string,
-    chatId?: number,
+    chatId?: string,
   ): Promise<string> {
     const { OpenAI } = await dynamicImport('langchain/llms/openai');
     const { HumanMessage, AIMessage } = await dynamicImport('langchain/schema');
@@ -37,7 +37,7 @@ remember the last few messages in the conversation history.`;
     //  we could limit the iteration to the last numberOfMessagesToRemember messages.
     const pastMessages = [];
     if (chatId) {
-      const messages = await this.messageService.findAll(chatId);
+      const messages = await this.messageService.findAll({ chatId });
       messages.forEach((m) => {
         if (m.role === 'user') {
           pastMessages.push(new HumanMessage(m.content));

@@ -4,7 +4,7 @@ export abstract class BaseAssistantService {
 
   public async generateResponse(
     input: string,
-    chatId?: number, // Add optional chatId parameter
+    chatId?: string,
   ): Promise<string> {
     let response = `Response from ${this.modelName}: ${input}`;
     if (chatId !== undefined) {

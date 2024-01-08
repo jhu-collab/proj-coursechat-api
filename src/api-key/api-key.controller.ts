@@ -8,48 +8,35 @@ import {
   Put,
   Query,
   UseGuards,
-  ParseIntPipe,
-  ParseBoolPipe,
   UseInterceptors,
   ClassSerializerInterceptor,
+  NotFoundException,
 } from '@nestjs/common';
 import { ApiKeyService } from './api-key.service';
-import { AppRoles } from './api-key.entity';
-import { CreateApiKeyDTO } from './dto/create-api-key.dto';
-import { UpdateApiKeyDTO } from './dto/update-api-key.dto';
+import { ApiKey } from './api-key.entity';
+import { ApiKeyRoles } from './api-key-roles.enum';
+import { CreateApiKeyDTO } from './api-key-create.dto';
+import { UpdateApiKeyDTO } from './api-key-update.dto';
 import { Roles } from 'src/decorators/roles.decorator';
 import { ApiKeyGuard } from 'src/guards/api-key.guard';
 import { RolesGuard } from 'src/guards/roles.guard';
-import { ApiKeyResponseDTO } from './dto/api-key-response.dto';
+import { ApiKeyResponseDTO } from './api-key-response.dto';
 import {
   ApiTags,
   ApiOperation,
   ApiParam,
-  ApiQuery,
   ApiBody,
-  ApiResponse,
   ApiSecurity,
+  ApiQuery,
 } from '@nestjs/swagger';
-import { ErrorResponseDTO } from 'src/dto/error-response.dto';
 import { ApiOkResponseWithWrapper } from 'src/decorators/api-ok-response-wrapper.decorator';
+import { FindApiKeysQueryDTO } from './api-key-find-query.dto';
+import { FindApiKeysResponseDTO } from './api-key-find-response.dto';
+import { CommonApiResponses } from 'src/decorators/common-api-responses.decorator';
+import { DefaultPaginationInterceptor } from 'src/interceptors/default-pagination.interceptor';
 
 @ApiTags('API Keys')
-@ApiResponse({
-  status: 400,
-  description: 'Bad Request',
-  type: ErrorResponseDTO,
-})
-@ApiResponse({
-  status: 401,
-  description: 'Unauthorized',
-  type: ErrorResponseDTO,
-})
-@ApiResponse({ status: 404, description: 'Not Found', type: ErrorResponseDTO })
-@ApiResponse({
-  status: 500,
-  description: 'Internal Server Error',
-  type: ErrorResponseDTO,
-})
+@CommonApiResponses()
 @ApiSecurity('apiKey')
 @Controller('api-keys')
 @UseGuards(ApiKeyGuard, RolesGuard)
@@ -58,46 +45,30 @@ export class ApiKeyController {
   constructor(private readonly apiKeyService: ApiKeyService) {}
 
   @Get()
-  @Roles(AppRoles.ADMIN)
+  @Roles(ApiKeyRoles.ADMIN)
   @ApiOperation({ summary: 'Retrieve a list of API keys' })
   @ApiQuery({
-    name: 'search',
-    required: false,
-    description: 'Search filter for API keys',
-  })
-  @ApiQuery({
-    name: 'limit',
-    required: false,
-    description: 'Limit the number of results',
-  })
-  @ApiQuery({
-    name: 'offset',
-    required: false,
-    description: 'Offset for pagination',
-  })
-  @ApiQuery({
-    name: 'withDeleted',
-    required: false,
-    description: 'Include soft-deleted API keys',
+    type: FindApiKeysQueryDTO,
   })
   @ApiOkResponseWithWrapper({
-    description: 'List of API keys',
+    description: 'List of API keys along with pagination details and filters',
     status: 200,
-    type: ApiKeyResponseDTO,
-    isArray: true,
+    type: FindApiKeysResponseDTO,
   })
+  @UseInterceptors(DefaultPaginationInterceptor)
   async findAll(
-    @Query('search') search?: string,
-    @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
-    @Query('offset', new ParseIntPipe({ optional: true })) offset?: number,
-    @Query('withDeleted', new ParseBoolPipe({ optional: true }))
-    withDeleted?: boolean,
-  ): Promise<ApiKeyResponseDTO[]> {
-    return this.apiKeyService.findAll(search, limit, offset, withDeleted);
+    @Query() query: FindApiKeysQueryDTO,
+  ): Promise<FindApiKeysResponseDTO> {
+    const apiKeys: ApiKey[] = await this.apiKeyService.findAll(query);
+
+    return {
+      ...query,
+      data: apiKeys,
+    };
   }
 
   @Get(':apiKeyId')
-  @Roles(AppRoles.ADMIN)
+  @Roles(ApiKeyRoles.ADMIN)
   @ApiOperation({ summary: 'Retrieve a specific API key by ID' })
   @ApiParam({ name: 'apiKeyId', description: 'ID of the API key to retrieve' })
   @ApiOkResponseWithWrapper({
@@ -106,13 +77,19 @@ export class ApiKeyController {
     type: ApiKeyResponseDTO,
   })
   async findOne(
-    @Param('apiKeyId', new ParseIntPipe()) apiKeyId: number,
+    @Param('apiKeyId') apiKeyId: string,
   ): Promise<ApiKeyResponseDTO> {
-    return this.apiKeyService.findOne(apiKeyId);
+    const foundApiKey = await this.apiKeyService.findOne(apiKeyId);
+
+    if (!foundApiKey) {
+      throw new NotFoundException(`API Key with ID ${apiKeyId} not found`);
+    }
+
+    return foundApiKey;
   }
 
   @Post()
-  @Roles(AppRoles.ADMIN)
+  @Roles(ApiKeyRoles.ADMIN)
   @ApiOperation({ summary: 'Create a new API key' })
   @ApiBody({ type: CreateApiKeyDTO, description: 'API key details' })
   @ApiOkResponseWithWrapper({
@@ -127,7 +104,7 @@ export class ApiKeyController {
   }
 
   @Put(':apiKeyId')
-  @Roles(AppRoles.ADMIN)
+  @Roles(ApiKeyRoles.ADMIN)
   @ApiOperation({ summary: 'Update an existing API key by ID' })
   @ApiParam({ name: 'apiKeyId', description: 'ID of the API key to update' })
   @ApiBody({
@@ -140,14 +117,23 @@ export class ApiKeyController {
     type: ApiKeyResponseDTO,
   })
   async update(
-    @Param('apiKeyId', new ParseIntPipe()) apiKeyId: number,
+    @Param('apiKeyId') apiKeyId: string,
     @Body() updateApiKeyDto: UpdateApiKeyDTO,
   ): Promise<ApiKeyResponseDTO> {
-    return this.apiKeyService.update(apiKeyId, updateApiKeyDto);
+    const updatesApiKey = await this.apiKeyService.update(
+      apiKeyId,
+      updateApiKeyDto,
+    );
+
+    if (!updatesApiKey) {
+      throw new NotFoundException(`API Key with ID ${apiKeyId} not found`);
+    }
+
+    return updatesApiKey;
   }
 
   @Delete(':apiKeyId')
-  @Roles(AppRoles.ADMIN)
+  @Roles(ApiKeyRoles.ADMIN)
   @ApiOperation({ summary: 'Delete an API key by ID' })
   @ApiParam({ name: 'apiKeyId', description: 'ID of the API key to delete' })
   @ApiOkResponseWithWrapper({
@@ -155,8 +141,17 @@ export class ApiKeyController {
     status: 200,
   })
   async delete(
-    @Param('apiKeyId', new ParseIntPipe()) apiKeyId: number,
-  ): Promise<void> {
-    return this.apiKeyService.delete(apiKeyId);
+    @Param('apiKeyId') apiKeyId: string,
+  ): Promise<{ statusCode: number; message: string }> {
+    const deletedApiKey = await this.apiKeyService.delete(apiKeyId);
+
+    if (!deletedApiKey) {
+      throw new NotFoundException(`API Key with ID ${apiKeyId} not found`);
+    }
+
+    return {
+      statusCode: 200,
+      message: 'Post deleted successfully',
+    };
   }
 }

@@ -29,6 +29,6 @@
  * @param packageName - The name or path of the package/module to be imported.
  * @returns - A promise that resolves to the imported module.
  */
-export const dynamicImport = async (packageName: string) => {
+export async function dynamicImport(packageName: string) {
   return new Function(`return import('${packageName}')`)();
-};
+}

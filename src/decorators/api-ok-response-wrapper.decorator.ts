@@ -2,6 +2,9 @@ import { applyDecorators } from '@nestjs/common';
 import { ApiExtraModels, ApiOkResponse, getSchemaPath } from '@nestjs/swagger';
 import { ApiResponseDTO } from 'src/dto/api-response.dto';
 
+/**
+ * Options for the wrapped API response.
+ */
 type WrappedResponseOptions = {
   description?: string;
   status?: number;
@@ -9,10 +12,35 @@ type WrappedResponseOptions = {
   isArray?: boolean;
 };
 
+/**
+ * Custom decorator that extends the standard Swagger ApiOkResponse decorator.
+ * It wraps the response in a standardized response structure defined by ApiResponseDTO.
+ * This structure typically includes fields like 'statusCode', 'message', and 'data'.
+ *
+ * Usage:
+ * Apply this decorator to controller methods where you want to document the response format
+ * using the ApiResponseDTO wrapper.
+ *
+ * @example
+ * ```
+ * @Get('/items')
+ * @ApiOkResponseWithWrapper({
+ *   description: 'A list of items',
+ *   type: ItemDTO,
+ *   isArray: true
+ * })
+ * getItems() {
+ *   // Method implementation...
+ * }
+ * ```
+ *
+ * @param {WrappedResponseOptions} options - The options for the response, including type, array flag, and others.
+ * @returns {DecoratorFunction} - A custom decorator function for Swagger documentation.
+ */
 export const ApiOkResponseWithWrapper = (options: WrappedResponseOptions) => {
   const { type, isArray, ...responseOptions } = options;
 
-  // Basic schema definition without the `data` property
+  // Schema definition without the `data` property
   const schemaDefinition: any = {
     allOf: [{ $ref: getSchemaPath(ApiResponseDTO) }],
   };
@@ -31,7 +59,7 @@ export const ApiOkResponseWithWrapper = (options: WrappedResponseOptions) => {
     });
   }
 
-  // Only pass the type to ApiExtraModels if it exists
+  // Apply decorators based on the provided type
   const decorators = type
     ? [
         ApiExtraModels(ApiResponseDTO, type),

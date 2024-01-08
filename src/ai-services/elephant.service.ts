@@ -21,7 +21,7 @@ by trying to remember too much.`;
 
   public async generateResponse(
     input: string,
-    chatId?: number,
+    chatId?: string,
   ): Promise<string> {
     const { OpenAI } = await dynamicImport('langchain/llms/openai');
     const { HumanMessage, AIMessage } = await dynamicImport('langchain/schema');
@@ -35,7 +35,7 @@ by trying to remember too much.`;
     // request will have to recompute the entire chat history.
     const pastMessages = [];
     if (chatId) {
-      const messages = await this.messageService.findAll(chatId);
+      const messages = await this.messageService.findAll({ chatId });
       messages.forEach((m) => {
         if (m.role === 'user') {
           pastMessages.push(new HumanMessage(m.content));

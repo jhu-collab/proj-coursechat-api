@@ -43,7 +43,7 @@ export class AssistantManagerService {
   public async generateResponse(
     assistantName: string,
     input: string,
-    chatId?: number, // Add optional chatId parameter
+    chatId?: string,
   ): Promise<string> {
     const service = this.assistants.get(assistantName);
     if (!service) {
@@ -54,7 +54,7 @@ export class AssistantManagerService {
 
   async synchronizeWithServices(): Promise<void> {
     for (const assistant of this.assistants.values()) {
-      const existingAssistant = await this.assistantService.findOneOrReturnNull(
+      const existingAssistant = await this.assistantService.findOne(
         assistant.modelName,
       );
       if (!existingAssistant) {

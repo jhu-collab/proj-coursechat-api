@@ -1,0 +1,9 @@
+{
+  "recommendations": [
+    "hediet.vscode-drawio"
+    "ms-vscode.js-debug-nightly",
+    "dbaeumer.vscode-eslint",
+    "mhutchie.git-graph",
+    "esbenp.prettier-vscode",
+  ]
+}

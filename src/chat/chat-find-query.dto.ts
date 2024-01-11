@@ -34,4 +34,18 @@ export class FindChatsQueryDTO extends FindQueryDTO {
   @IsString()
   @IsOptional()
   assistantName?: string;
+
+  /**
+   * Optional filter to search for chats associated with a specific username.
+   * When provided, the query will return chats linked to the specified username.
+   * This can be particularly useful for external applications to retrieve chats relevant to a specific user.
+   *
+   * @ApiPropertyOptional - Marks this property as optional in Swagger documentation.
+   * @IsString - Validates that the input, if provided, is a string.
+   * @IsOptional - Indicates that this field is not required.
+   */
+  @ApiPropertyOptional({ description: 'Filter by specific username' })
+  @IsString()
+  @IsOptional()
+  username?: string;
 }

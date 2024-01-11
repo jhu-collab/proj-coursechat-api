@@ -82,4 +82,14 @@ export class Chat {
    */
   @Column()
   assistantName: string;
+
+  /**
+   * An optional username associated with the chat.
+   * This field can be used to link chats to specific users in external applications.
+   * Indexed for faster queries, but not required, so it can be null.
+   * @Index - Marks this column as indexed for faster queries.
+   */
+  @Index()
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  username: string | null;
 }

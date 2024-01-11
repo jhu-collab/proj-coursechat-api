@@ -14,7 +14,7 @@ export class ChatService {
   ) {}
 
   async findAll(query: FindChatsQueryDTO): Promise<Chat[]> {
-    const { limit, offset, search, apiKeyId, assistantName } = query;
+    const { limit, offset, search, apiKeyId, assistantName, username } = query;
     const title = search ? ILike(`%${search}%`) : undefined;
 
     const chats = await this.chatRepository.find({
@@ -24,6 +24,7 @@ export class ChatService {
         title: title,
         apiKeyId: apiKeyId,
         assistantName: assistantName,
+        username: username,
       },
       order: {
         createdAt: 'DESC',

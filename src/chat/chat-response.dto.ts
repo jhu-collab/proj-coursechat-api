@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 /**
  * Data Transfer Object (DTO) for the response containing details of a chat session.
@@ -54,4 +54,14 @@ export class ChatResponseDTO {
    */
   @ApiProperty({ description: 'Name of the associated assistant' })
   assistantName: string;
+
+  /**
+   * The optional username associated with the chat.
+   * This field, if provided during chat creation, links the chat to a specific user in an external application.
+   * It is included in the response to provide context about the user associated with the chat.
+   *
+   * @ApiPropertyOptional - Documents this property in Swagger as optional, indicating its role and presence in the response.
+   */
+  @ApiPropertyOptional({ description: 'Username associated with the chat' })
+  username?: string;
 }

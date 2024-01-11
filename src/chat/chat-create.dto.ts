@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, Length } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsString, IsNotEmpty, Length, IsOptional } from 'class-validator';
 
 /**
  * Data Transfer Object (DTO) for creating a new chat session.
@@ -37,4 +37,23 @@ export class CreateChatDTO {
   @IsNotEmpty()
   @Length(1, 50)
   assistantName: string;
+
+  /**
+   * An optional username associated with the chat.
+   * This field can be used by external applications to link chats to specific users.
+   * It can store up to 255 characters and is allowed to be null.
+   *
+   * @ApiPropertyOptional - Documents this property in Swagger as optional, indicating its role and constraints.
+   * @IsString - Validates that the username, if provided, is a string.
+   * @IsOptional - Indicates that the username is not a required field.
+   * @Length(1, 255) - Ensures the username, if provided, is between 1 and 255 characters long.
+   */
+  @ApiPropertyOptional({
+    description: 'Username associated with the chat',
+    maxLength: 255,
+  })
+  @IsString()
+  @IsOptional()
+  @Length(1, 255)
+  username?: string;
 }

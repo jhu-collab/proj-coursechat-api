@@ -5,6 +5,7 @@ import { Chat } from './chat.entity';
 import { CreateChatDTO } from './chat-create.dto';
 import { UpdateChatDTO } from './chat-update.dto';
 import { FindChatsQueryDTO } from './chat-find-query.dto';
+import { SortOrder } from 'src/dto/sort-order.enum';
 
 @Injectable()
 export class ChatService {
@@ -14,7 +15,15 @@ export class ChatService {
   ) {}
 
   async findAll(query: FindChatsQueryDTO): Promise<Chat[]> {
-    const { limit, offset, search, apiKeyId, assistantName, username } = query;
+    const {
+      limit,
+      offset,
+      search,
+      apiKeyId,
+      assistantName,
+      username,
+      sortOrder = SortOrder.DESC,
+    } = query;
     const title = search ? ILike(`%${search}%`) : undefined;
 
     const chats = await this.chatRepository.find({
@@ -27,7 +36,7 @@ export class ChatService {
         username: username,
       },
       order: {
-        createdAt: 'DESC',
+        createdAt: sortOrder,
       },
     });
 

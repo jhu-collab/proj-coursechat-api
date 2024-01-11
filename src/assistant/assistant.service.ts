@@ -5,6 +5,7 @@ import { Assistant } from './assistant.entity';
 import { CreateAssistantDTO } from './assistant-create.dto';
 import { UpdateAssistantDTO } from './assistant-update.dto';
 import { FindAssistantsQueryDTO } from './assistant-find-query.dto';
+import { SortOrder } from 'src/dto/sort-order.enum';
 
 @Injectable()
 export class AssistantService {
@@ -14,7 +15,14 @@ export class AssistantService {
   ) {}
 
   async findAll(query: FindAssistantsQueryDTO): Promise<Assistant[]> {
-    const { limit, offset, search, withDeleted, isActive } = query;
+    const {
+      limit,
+      offset,
+      search,
+      withDeleted,
+      isActive,
+      sortOrder = SortOrder.DESC,
+    } = query;
     const name = search ? ILike(`%${search}%`) : undefined;
     const description = search ? ILike(`%${search}%`) : undefined;
 
@@ -26,7 +34,7 @@ export class AssistantService {
         { description: description, isActive: isActive },
       ],
       order: {
-        createdAt: 'DESC',
+        createdAt: sortOrder,
       },
       withDeleted,
     });

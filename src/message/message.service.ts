@@ -5,6 +5,7 @@ import { Message } from './message.entity';
 import { CreateMessageDTO } from './message-create.dto';
 import { UpdateMessageDTO } from './message-update.dto';
 import { FindMessagesQueryDTO } from './message-find-query.dto';
+import { SortOrder } from 'src/dto/sort-order.enum';
 
 @Injectable()
 export class MessageService {
@@ -14,7 +15,7 @@ export class MessageService {
   ) {}
 
   async findAll(query: FindMessagesQueryDTO): Promise<Message[]> {
-    const { limit, offset, search, chatId } = query;
+    const { limit, offset, search, chatId, sortOrder = SortOrder.DESC } = query;
     const content = search ? ILike(`%${search}%`) : undefined;
 
     const messages = await this.messageRepository.find({
@@ -25,7 +26,7 @@ export class MessageService {
         chatId: chatId,
       },
       order: {
-        createdAt: 'ASC',
+        createdAt: sortOrder,
       },
     });
 

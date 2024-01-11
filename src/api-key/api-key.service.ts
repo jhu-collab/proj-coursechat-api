@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, Repository } from 'typeorm';
 import { ApiKey } from './api-key.entity';
@@ -13,6 +13,8 @@ import { SortOrder } from 'src/dto/sort-order.enum';
  */
 @Injectable()
 export class ApiKeyService {
+  private readonly logger = new Logger(ApiKeyService.name);
+
   /**
    * Constructor.
    *
@@ -38,6 +40,10 @@ export class ApiKeyService {
    *   The array is sorted by the createdAt date in either ascending or descending order, as specified.
    */
   async findAll(query: FindApiKeysQueryDTO): Promise<ApiKey[]> {
+    this.logger.verbose(
+      `Finding all API keys with query: ${JSON.stringify(query)}`,
+    );
+
     const {
       limit,
       offset,
@@ -61,6 +67,7 @@ export class ApiKeyService {
       withDeleted,
     });
 
+    this.logger.verbose(`Found ${keys.length} API keys`);
     return keys;
   }
 
@@ -75,6 +82,8 @@ export class ApiKeyService {
    * @returns {Promise<ApiKey | null>} - The API key entity if found, or null if not found. Includes soft-deleted keys if 'withDeleted' is true.
    */
   async findOne(id: string, withDeleted = false): Promise<ApiKey | null> {
+    this.logger.verbose(`Finding API key with ID: ${id}`);
+
     return this.apiKeyRepository.findOne({
       where: {
         id: id,
@@ -94,6 +103,8 @@ export class ApiKeyService {
    * @returns {Promise<ApiKey[]>} - An array of API key entities matching the role, possibly including soft-deleted ones based on the flag.
    */
   async findByRole(role: ApiKeyRoles, withDeleted = false): Promise<ApiKey[]> {
+    this.logger.verbose(`Finding API keys with role: ${role}`);
+
     const whereCondition = { role: role };
 
     const findOptions = {
@@ -131,6 +142,8 @@ export class ApiKeyService {
    * @returns {Promise<ApiKey>} - The newly created API key entity.
    */
   async create(createApiKeyDto: CreateApiKeyDTO): Promise<ApiKey> {
+    this.logger.verbose(`Creating new API key`);
+
     const apiKey = this.apiKeyRepository.create(createApiKeyDto);
     return this.apiKeyRepository.save(apiKey);
   }
@@ -148,12 +161,15 @@ export class ApiKeyService {
     id: string,
     updateApiKeyDto: UpdateApiKeyDTO,
   ): Promise<ApiKey | null> {
+    this.logger.verbose(`Updating API key with ID: ${id}`);
+
     const apiKey = await this.apiKeyRepository.preload({
       id,
       ...updateApiKeyDto,
     });
 
     if (!apiKey) {
+      this.logger.warn(`API key with id ${id} not found`);
       return null;
     }
 
@@ -169,9 +185,12 @@ export class ApiKeyService {
    * @returns {Promise<ApiKey | null>} - The soft-deleted API key entity, or null if not found.
    */
   async delete(id: string): Promise<ApiKey | null> {
+    this.logger.verbose(`Deleting API key with ID: ${id}`);
+
     const foundApiKey = await this.findOne(id);
 
     if (!foundApiKey) {
+      this.logger.warn(`API key with id ${id} not found`);
       return null;
     }
 

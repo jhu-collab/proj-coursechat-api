@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { BaseAssistantService } from './base-assistant.service';
+import { BaseAssistantService } from './assistant-00-base.service';
 import { MessageService } from 'src/message/message.service';
 import { dynamicImport } from 'src/utils/dynamic-import.utils';
 import { MessageRoles } from 'src/message/message-roles.enum';

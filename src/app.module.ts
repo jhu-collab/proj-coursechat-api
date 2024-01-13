@@ -19,13 +19,12 @@ import { Assistant } from './assistant/assistant.entity';
 import { ExtractApiKeyMiddleware } from './middleware/extract-api-key.middleware';
 import { ConversationController } from './conversation/conversation.controller';
 import { AssistantManagerService } from './ai-services/assistant-manager.service';
-import { ParrotService } from './ai-services/parrot.service';
-import { DoryService } from './ai-services/dory.service';
-import { Gpt4Service } from './ai-services/gpt-4.service';
+import { ParrotService } from './ai-services/assistant-01-parrot.service';
+import { DoryService } from './ai-services/assistant-02-dory.service';
 import { BloomService } from './ai-services/bloom.service';
-import { ElephantService } from './ai-services/elephant.service';
-import { MementoService } from './ai-services/memento.service';
-import { FinchService } from './ai-services/finch.service';
+import { ElephantService } from './ai-services/assistant-03-elephant.service';
+import { MementoService } from './ai-services/assistant-04-memento.service';
+import { FinchService } from './ai-services/assistant-05-finch.service';
 import { validate } from './env.validation';
 import { DevtoolsModule } from '@nestjs/devtools-integration';
 
@@ -74,7 +73,6 @@ import { DevtoolsModule } from '@nestjs/devtools-integration';
     AssistantManagerService,
     ParrotService,
     DoryService,
-    Gpt4Service,
     BloomService,
     ElephantService,
     MementoService,

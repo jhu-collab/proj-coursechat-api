@@ -1,5 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, Length } from 'class-validator';
+import { Transform } from 'class-transformer';
+import { IsString, IsNotEmpty, Length, IsBoolean } from 'class-validator';
+import { booleanStringTransform } from 'src/utils/transform.utils';
 
 /**
  * Data Transfer Object (DTO) for starting a new conversation.
@@ -39,6 +41,23 @@ export class StartConversationDTO {
   @IsNotEmpty()
   @Length(1, 50)
   assistantName: string;
+
+  /**
+   * A flag indicating whether the response should be streamed.
+   * When set to true, the response from the assistant will be streamed back to the client.
+   * Defaults to true, enabling streaming behavior.
+   *
+   * @ApiProperty - Documents this property in Swagger, indicating its role and default behavior.
+   * @IsBoolean - Validates that the input is a boolean value.
+   * @Transform - Custom transform function to convert string input to boolean.
+   */
+  @ApiProperty({
+    description: 'Flag to stream the response.',
+    default: true,
+  })
+  @IsBoolean()
+  @Transform(({ obj }) => booleanStringTransform(obj, 'stream'))
+  stream: boolean = true;
 
   /**
    * The initial message to start the conversation.

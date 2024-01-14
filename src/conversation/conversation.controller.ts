@@ -146,13 +146,17 @@ export class ConversationController {
     try {
       const apiKeyId =
         apiKey.role === ApiKeyRoles.CLIENT ? apiKey.id : undefined;
-      const { message, ...createChatDto } = startConversationDto;
+      const { message, stream, ...createChatDto } = startConversationDto;
       const chat = await this.chatService.create(apiKeyId, createChatDto);
 
       await this.messageService.create(chat.id, {
         content: message,
         role: MessageRoles.USER,
       });
+
+      // TODO: the generateResponse must stream by default,
+      // `  but we need to switch to non-streaming here,
+      //    if the `stream` flag is false
 
       // Generate response using the associated assistant
       const response = await this.assistantManagerService.generateResponse(
@@ -227,7 +231,7 @@ export class ConversationController {
       }
     }
 
-    const { message } = continueConversationDto;
+    const { message, stream } = continueConversationDto;
 
     try {
       await this.messageService.create(chatId, {
@@ -238,6 +242,7 @@ export class ConversationController {
       // Generate response using the associated assistant
       const response = await this.assistantManagerService.generateResponse(
         chat.assistantName,
+        stream,
         message,
         chatId,
       );

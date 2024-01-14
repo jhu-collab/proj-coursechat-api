@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { BaseAssistantService } from './assistant-00-base.service';
-import { dynamicImport } from 'src/utils/dynamic-import.utils';
+import { dynamicImport } from 'src/ai-services/assistant.utils';
 
 /**
  * Service for the "Dory" AI assistant.

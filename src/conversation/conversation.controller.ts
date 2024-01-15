@@ -12,12 +12,12 @@ import {
   InternalServerErrorException,
   NotFoundException,
   Inject,
+  Res,
 } from '@nestjs/common';
 import { StartConversationDTO } from './conversation-start.dto';
 import { ContinueConversationDTO } from './conversation-continue.dto';
 import { ApiKeyGuard } from 'src/guards/api-key.guard';
 import { ApiKeyEntity } from 'src/decorators/api-key.decorator';
-import { ConversationResponseDTO } from './conversation-response.dto';
 import { Roles } from 'src/decorators/roles.decorator';
 import { ApiKey } from 'src/api-key/api-key.entity';
 import { ApiKeyRoles } from 'src/api-key/api-key-roles.enum';
@@ -46,6 +46,8 @@ import { UpdateChatDTO } from 'src/chat/chat-update.dto';
 import { Cache } from 'cache-manager';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { DefaultPaginationInterceptor } from 'src/interceptors/default-pagination.interceptor';
+import { Response } from 'express';
+import { IterableReadableStreamInterface } from 'src/ai-services/assistant-00-base.service';
 
 @ApiTags('Conversations')
 @CommonApiResponses()
@@ -133,43 +135,52 @@ export class ConversationController {
     summary: 'Initiate a new conversation and get the initial AI response',
   })
   @ApiBody({ type: StartConversationDTO })
-  @ApiOkResponseWithWrapper({
-    description:
-      'Chat created successfully, message stored and AI response sent back',
-    status: 201,
-    type: ConversationResponseDTO,
-  })
+  // @ApiOkResponseWithWrapper({
+  //   description:
+  //     'Chat created successfully, message stored and AI response sent back',
+  //   status: 201,
+  //   type: ConversationResponseDTO,
+  // })
   async startNewConversation(
     @Body() startConversationDto: StartConversationDTO,
     @ApiKeyEntity() apiKey: ApiKey,
-  ): Promise<ConversationResponseDTO> {
+    @Res({ passthrough: false }) res: Response,
+  ) {
     try {
-      const apiKeyId =
-        apiKey.role === ApiKeyRoles.CLIENT ? apiKey.id : undefined;
       const { message, stream, ...createChatDto } = startConversationDto;
-      const chat = await this.chatService.create(apiKeyId, createChatDto);
+      const chat = await this.chatService.create(apiKey.id, createChatDto);
 
       await this.messageService.create(chat.id, {
         content: message,
         role: MessageRoles.USER,
       });
 
-      // TODO: the generateResponse must stream by default,
-      // `  but we need to switch to non-streaming here,
-      //    if the `stream` flag is false
-
       // Generate response using the associated assistant
-      const response = await this.assistantManagerService.generateResponse(
-        chat.assistantName,
-        message,
-        chat.id, // Pass chat.id as chatId
-      );
+      const responseStream =
+        (await this.assistantManagerService.generateResponse(
+          chat.assistantName,
+          message,
+          chat.id, // Pass chat.id as chatId
+        )) as IterableReadableStreamInterface<string>;
 
-      if (!response) {
+      if (!responseStream) {
         throw new InternalServerErrorException(
           'Failed to generate AI response.',
         );
       }
+
+      stream && res.setHeader('Content-Type', 'text/event-stream');
+      stream && res.setHeader('Cache-Control', 'no-cache');
+      stream && res.setHeader('Connection', 'keep-alive');
+      stream && res.setHeader('chatId', chat.id);
+
+      let response = '';
+      for await (const chunk of responseStream) {
+        response += chunk;
+        stream && res.write(`data: ${chunk}\n\n`);
+      }
+
+      stream && res.write('data: [DONE]');
 
       // Save the AI's response as a new message linked to the same chat
       await this.messageService.create(chat.id, {
@@ -177,14 +188,25 @@ export class ConversationController {
         role: MessageRoles.ASSISTANT,
       });
 
-      return {
-        chatId: chat.id,
-        response,
-      };
+      !stream && res.setHeader('Content-Type', 'application/json');
+      !stream &&
+        res.write(
+          JSON.stringify({
+            status: 201,
+            message:
+              'Chat created successfully, message stored and AI response sent back',
+            data: {
+              chatId: chat.id,
+              response,
+            },
+          }),
+        );
+
+      res.end();
     } catch (error) {
       throw new InternalServerErrorException(
         'Failed to start a conversation.',
-        error.message,
+        `${error.detail} : ${error.message}`,
       );
     }
   }
@@ -197,16 +219,17 @@ export class ConversationController {
   })
   @ApiParam({ name: 'chatId', description: 'Chat ID' })
   @ApiBody({ type: ContinueConversationDTO })
-  @ApiOkResponseWithWrapper({
-    description: 'Message stored and AI response sent back',
-    status: 201,
-    type: ConversationResponseDTO,
-  })
+  // @ApiOkResponseWithWrapper({
+  //   description: 'Message stored and AI response sent back',
+  //   status: 201,
+  //   type: ConversationResponseDTO,
+  // })
   async continueConversation(
     @ApiKeyEntity() apiKey: ApiKey,
     @Param('chatId') chatId: string,
     @Body() continueConversationDto: ContinueConversationDTO,
-  ): Promise<ConversationResponseDTO> {
+    @Res({ passthrough: false }) res: Response,
+  ) {
     const apiKeyId = apiKey.role === ApiKeyRoles.CLIENT ? apiKey.id : undefined;
     // Try to get the chat from cache
     const chatCacheKey = `chat_${chatId}`;
@@ -240,18 +263,31 @@ export class ConversationController {
       });
 
       // Generate response using the associated assistant
-      const response = await this.assistantManagerService.generateResponse(
-        chat.assistantName,
-        stream,
-        message,
-        chatId,
-      );
+      const responseStream =
+        (await this.assistantManagerService.generateResponse(
+          chat.assistantName,
+          message,
+          chatId,
+        )) as IterableReadableStreamInterface<string>;
 
-      if (!response) {
+      if (!responseStream) {
         throw new InternalServerErrorException(
           'Failed to generate AI response.',
         );
       }
+
+      stream && res.setHeader('Content-Type', 'text/event-stream');
+      stream && res.setHeader('Cache-Control', 'no-cache');
+      stream && res.setHeader('Connection', 'keep-alive');
+      stream && res.setHeader('chatId', chatId);
+
+      let response = '';
+      for await (const chunk of responseStream) {
+        response += chunk;
+        stream && res.write(`data: ${chunk}\n\n`);
+      }
+
+      stream && res.write('data: [DONE]');
 
       // Save the AI's response as a new message linked to the same chat
       await this.messageService.create(chatId, {
@@ -259,10 +295,20 @@ export class ConversationController {
         role: MessageRoles.ASSISTANT,
       });
 
-      return {
-        chatId,
-        response,
-      };
+      !stream && res.setHeader('Content-Type', 'application/json');
+      !stream &&
+        res.write(
+          JSON.stringify({
+            status: 201,
+            message: 'Message stored and AI response sent back',
+            data: {
+              chatId,
+              response,
+            },
+          }),
+        );
+
+      res.end();
     } catch (error) {
       throw new InternalServerErrorException(
         'Failed to continue a conversation.',

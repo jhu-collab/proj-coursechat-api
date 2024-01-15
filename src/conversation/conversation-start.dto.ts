@@ -1,7 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
 import { IsString, IsNotEmpty, Length, IsBoolean } from 'class-validator';
-import { booleanStringTransform } from 'src/utils/transform.utils';
 
 /**
  * Data Transfer Object (DTO) for starting a new conversation.
@@ -56,7 +54,6 @@ export class StartConversationDTO {
     default: true,
   })
   @IsBoolean()
-  @Transform(({ obj }) => booleanStringTransform(obj, 'stream'))
   stream: boolean = true;
 
   /**

@@ -9,8 +9,8 @@ import { initAdminApiKey } from './api-key/api-keys.utils';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
-    // logger: ['error', 'warn', 'log', 'verbose', 'debug'],
-    logger: ['error', 'warn', 'log'],
+    logger: ['error', 'warn', 'log', 'verbose', 'debug'],
+    // logger: ['error', 'warn', 'log'],
     snapshot: true,
   });
 

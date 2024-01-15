@@ -2,7 +2,10 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ParrotService } from './assistant-01-parrot.service';
 import { DoryService } from './assistant-02-dory.service';
 import { BloomService } from './bloom.service';
-import { BaseAssistantService } from './assistant-00-base.service';
+import {
+  BaseAssistantService,
+  IterableReadableStreamInterface,
+} from './assistant-00-base.service';
 import { AssistantService } from 'src/assistant/assistant.service';
 import { ElephantService } from './assistant-03-elephant.service';
 import { MementoService } from './assistant-04-memento.service';
@@ -67,13 +70,13 @@ export class AssistantManagerService {
    * @param {string} assistantName - The name of the assistant to use.
    * @param {string} input - The input string to generate a response for.
    * @param {string} [chatId] - Optional chat ID associated with the response.
-   * @returns {Promise<string>} - A promise resolving to the assistant's response.
+   * @returns {Promise<string | IterableReadableStreamInterface<string>>>} - A promise resolving to the assistant's response.
    */
   public async generateResponse(
     assistantName: string,
     input: string,
     chatId?: string,
-  ): Promise<string> {
+  ): Promise<string | IterableReadableStreamInterface<string>> {
     this.logger.verbose(
       `Generating response with ${assistantName} for input: ${input}`,
     );

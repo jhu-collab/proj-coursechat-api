@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { BaseAssistantService } from './assistant-00-base.service';
+import {
+  BaseAssistantService,
+  IterableReadableStreamInterface,
+} from './assistant-00-base.service';
 import { dynamicImport } from 'src/ai-services/assistant.utils';
 
 /**
@@ -42,25 +45,29 @@ Dory does not retain any memory of previous interactions.`;
    * The method dynamically imports necessary components and initializes the ChatOpenAI with specific configurations.
    *
    * @param {string} input - The input message to be processed by Dory.
-   * @returns {Promise<string>} - The AI-generated response.
+   * @returns {Promise<string | IterableReadableStreamInterface<string>>} - The AI-generated response.
    */
-  public async generateResponse(input: string): Promise<string> {
+  public async generateResponse(
+    input: string,
+  ): Promise<string | IterableReadableStreamInterface<string>> {
     this.logger.verbose(`Generating response for input: ${input}`);
-    const { ChatOpenAI } = await dynamicImport('langchain/chat_models/openai');
-    const { HumanMessage } = await dynamicImport('langchain/schema');
+    const { ChatOpenAI } = await dynamicImport('@langchain/openai');
+    const { HumanMessage } = await dynamicImport('@langchain/core/messages');
+    const { StringOutputParser } = await dynamicImport(
+      '@langchain/core/output_parsers',
+    );
+
+    const parser = new StringOutputParser();
 
     const chat = new ChatOpenAI({
       openAIApiKey: this.configService.get<string>('OPENAI_API_KEY'),
       modelName: 'gpt-3.5-turbo-16k',
       temperature: 0,
-      streaming: false,
+      streaming: true,
     });
 
-    let response = await chat.call([new HumanMessage(input)]);
-    response = response?.content || 'No response from Dory.js';
+    const stream = await chat.pipe(parser).stream([new HumanMessage(input)]);
 
-    this.logger.verbose(`Dory response: ${response}`);
-
-    return response;
+    return stream;
   }
 }

@@ -1,5 +1,9 @@
 import { Logger } from '@nestjs/common';
 
+export interface IterableReadableStreamInterface<T>
+  extends ReadableStream<T>,
+    AsyncIterable<T> {}
+
 /**
  * Abstract class serving as a base for assistant services.
  * This class provides a basic structure and common functionalities that can be extended by specific assistant services.
@@ -22,12 +26,12 @@ export abstract class BaseAssistantService {
    *
    * @param {string} input - The input string to generate a response for.
    * @param {string} [chatId] - Optional chat ID to associate with the response.
-   * @returns {Promise<string>} - A promise resolving to the generated response string.
+   * @returns {Promise<string | IterableReadableStreamInterface<string>>} - A promise resolving to the generated response string.
    */
   public async generateResponse(
     input: string,
     chatId?: string,
-  ): Promise<string> {
+  ): Promise<string | IterableReadableStreamInterface<string>> {
     this.logger.verbose(
       `Generating response for input: ${input}, chatId: ${chatId}`,
     );

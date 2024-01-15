@@ -32,6 +32,7 @@ import { DevtoolsModule } from '@nestjs/devtools-integration';
   imports: [
     DevtoolsModule.register({
       http: process.env.NODE_ENV !== 'production',
+      port: parseInt(process.env.DEVTOOLS_PORT) || 3001,
     }),
     CacheModule.register({
       ttl: 5, // seconds

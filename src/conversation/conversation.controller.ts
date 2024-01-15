@@ -104,10 +104,11 @@ export class ConversationController {
   })
   async findAllMessagesInOneConversation(
     @ApiKeyEntity() apiKey: ApiKey,
+    @Param('chatId') chatId: string,
     @Query() query: FindMessagesQueryDTO,
   ): Promise<FindMessagesResponseDTO> {
     const apiKeyId = apiKey.role === ApiKeyRoles.CLIENT ? apiKey.id : undefined;
-    const { limit, offset, search, chatId } = query;
+    const { limit, offset, search } = query;
     const chat = await this.chatService.findOne(chatId, apiKeyId);
 
     if (!chat) {
@@ -177,10 +178,17 @@ export class ConversationController {
       let response = '';
       for await (const chunk of responseStream) {
         response += chunk;
-        stream && res.write(`data: ${chunk}\n\n`);
+
+        const completionChunk = {
+          delta: {
+            content: chunk,
+          },
+        };
+
+        stream && res.write(`data: ${JSON.stringify(completionChunk)}\n\n`);
       }
 
-      stream && res.write('data: [DONE]');
+      stream && res.write('[DONE]');
 
       // Save the AI's response as a new message linked to the same chat
       await this.messageService.create(chat.id, {
@@ -284,10 +292,17 @@ export class ConversationController {
       let response = '';
       for await (const chunk of responseStream) {
         response += chunk;
-        stream && res.write(`data: ${chunk}\n\n`);
+
+        const completionChunk = {
+          delta: {
+            content: chunk,
+          },
+        };
+
+        stream && res.write(`data: ${JSON.stringify(completionChunk)}\n\n`);
       }
 
-      stream && res.write('data: [DONE]');
+      stream && res.write('[DONE]');
 
       // Save the AI's response as a new message linked to the same chat
       await this.messageService.create(chatId, {

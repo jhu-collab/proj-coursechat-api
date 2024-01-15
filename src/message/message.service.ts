@@ -35,7 +35,7 @@ export class MessageService {
       `Finding all messages with query: ${JSON.stringify(query)}`,
     );
 
-    const { limit, offset, search, chatId, sortOrder = SortOrder.DESC } = query;
+    const { limit, offset, search, chatId, sortOrder = SortOrder.ASC } = query;
     const content = search ? ILike(`%${search}%`) : undefined;
 
     const messages = await this.messageRepository.find({

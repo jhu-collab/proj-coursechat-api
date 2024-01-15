@@ -39,8 +39,8 @@ export class AssistantService {
       limit,
       offset,
       search,
-      withDeleted,
-      isActive,
+      withDeleted = false,
+      isActive = true,
       sortOrder = SortOrder.DESC,
     } = query;
     const name = search ? ILike(`%${search}%`) : undefined;

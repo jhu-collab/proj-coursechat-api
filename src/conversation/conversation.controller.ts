@@ -136,6 +136,7 @@ export class ConversationController {
     summary: 'Initiate a new conversation and get the initial AI response',
   })
   @ApiBody({ type: StartConversationDTO })
+  // TODO: Add proper swagger documentation here (given the output changes based on stream flag)
   // @ApiOkResponseWithWrapper({
   //   description:
   //     'Chat created successfully, message stored and AI response sent back',
@@ -227,6 +228,7 @@ export class ConversationController {
   })
   @ApiParam({ name: 'chatId', description: 'Chat ID' })
   @ApiBody({ type: ContinueConversationDTO })
+  // TODO: Add proper swagger documentation here (given the output changes based on stream flag)
   // @ApiOkResponseWithWrapper({
   //   description: 'Message stored and AI response sent back',
   //   status: 201,

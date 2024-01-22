@@ -5,6 +5,7 @@ import { MessageService } from 'src/message/message.service';
 import { dynamicImport } from 'src/ai-services/assistant.utils';
 import { MessageRoles } from 'src/message/message-roles.enum';
 
+// TODO: Update this to conform to other assistant files.
 @Injectable()
 export class BloomService extends BaseAssistantService {
   modelName = 'bloom';

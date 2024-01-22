@@ -1,55 +1,44 @@
 import {
-  Body,
   Controller,
-  Delete,
   Get,
-  Param,
-  ParseIntPipe,
   Post,
+  Body,
+  Param,
+  Delete,
   Put,
   Query,
   UseGuards,
   UseInterceptors,
   ClassSerializerInterceptor,
+  NotFoundException,
 } from '@nestjs/common';
 import { ChatService } from './chat.service';
-import { CreateChatDTO } from './dto/create-chat.dto';
-import { UpdateChatDTO } from './dto/update-chat.dto';
+import { Chat } from './chat.entity';
+import { CreateChatDTO } from './chat-create.dto';
+import { UpdateChatDTO } from './chat-update.dto';
 import { ApiKeyEntity } from 'src/decorators/api-key.decorator';
 import { ApiKeyGuard } from 'src/guards/api-key.guard';
 import { RolesGuard } from 'src/guards/roles.guard';
 import { Roles } from 'src/decorators/roles.decorator';
-import { ApiKey, AppRoles } from 'src/api-key/api-key.entity';
-import { ChatResponseDTO } from './dto/chat-response.dto';
+import { ChatResponseDTO } from './chat-response.dto';
 import {
   ApiTags,
   ApiOperation,
-  ApiQuery,
-  ApiResponse,
-  ApiBody,
   ApiParam,
+  ApiBody,
   ApiSecurity,
+  ApiQuery,
 } from '@nestjs/swagger';
-import { ErrorResponseDTO } from 'src/dto/error-response.dto';
 import { ApiOkResponseWithWrapper } from 'src/decorators/api-ok-response-wrapper.decorator';
+import { FindChatsQueryDTO } from './chat-find-query.dto';
+import { FindChatsResponseDTO } from './chat-find-response.dto';
+import { ApiKey } from 'src/api-key/api-key.entity';
+import { ApiKeyRoles } from 'src/api-key/api-key-roles.enum';
+import { CommonApiResponses } from 'src/decorators/common-api-responses.decorator';
+import { DefaultPaginationInterceptor } from 'src/interceptors/default-pagination.interceptor';
 
 @ApiTags('Chats')
-@ApiResponse({
-  status: 400,
-  description: 'Bad Request',
-  type: ErrorResponseDTO,
-})
-@ApiResponse({
-  status: 401,
-  description: 'Unauthorized',
-  type: ErrorResponseDTO,
-})
-@ApiResponse({ status: 404, description: 'Not Found', type: ErrorResponseDTO })
-@ApiResponse({
-  status: 500,
-  description: 'Internal Server Error',
-  type: ErrorResponseDTO,
-})
+@CommonApiResponses()
 @ApiSecurity('apiKey')
 @Controller('chats')
 @UseGuards(ApiKeyGuard, RolesGuard)
@@ -58,39 +47,30 @@ export class ChatController {
   constructor(private chatService: ChatService) {}
 
   @Get()
-  @Roles(AppRoles.ADMIN)
+  @Roles(ApiKeyRoles.ADMIN)
   @ApiOperation({ summary: 'Retrieve a list of chats' })
   @ApiQuery({
-    name: 'search',
-    required: false,
-    description: 'Search filter for chats',
-  })
-  @ApiQuery({
-    name: 'limit',
-    required: false,
-    description: 'Limit the number of results',
-  })
-  @ApiQuery({
-    name: 'offset',
-    required: false,
-    description: 'Offset for pagination',
+    type: FindChatsQueryDTO,
   })
   @ApiOkResponseWithWrapper({
-    description: 'List of chats',
+    description: 'List of chats along with pagination details and filters',
     status: 200,
-    type: ChatResponseDTO,
-    isArray: true,
+    type: FindChatsResponseDTO,
   })
+  @UseInterceptors(DefaultPaginationInterceptor)
   async findAll(
-    @Query('search') search?: string,
-    @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
-    @Query('offset', new ParseIntPipe({ optional: true })) offset?: number,
-  ): Promise<ChatResponseDTO[]> {
-    return await this.chatService.findAll(search, limit, offset);
+    @Query() query: FindChatsQueryDTO,
+  ): Promise<FindChatsResponseDTO> {
+    const chats: Chat[] = await this.chatService.findAll(query);
+
+    return {
+      ...query,
+      data: chats,
+    };
   }
 
   @Get(':chatId')
-  @Roles(AppRoles.ADMIN)
+  @Roles(ApiKeyRoles.ADMIN)
   @ApiOperation({ summary: 'Retrieve a specific chat by ID' })
   @ApiParam({ name: 'chatId', description: 'ID of the chat to retrieve' })
   @ApiOkResponseWithWrapper({
@@ -98,14 +78,18 @@ export class ChatController {
     status: 200,
     type: ChatResponseDTO,
   })
-  async findOne(
-    @Param('chatId', new ParseIntPipe({ optional: true })) chatId: number,
-  ): Promise<ChatResponseDTO> {
-    return await this.chatService.findOne(chatId);
+  async findOne(@Param('chatId') chatId: string): Promise<ChatResponseDTO> {
+    const chat = await this.chatService.findOne(chatId);
+
+    if (!chat) {
+      throw new NotFoundException(`Chat with ID ${chatId} not found`);
+    }
+
+    return chat;
   }
 
   @Post()
-  @Roles(AppRoles.ADMIN)
+  @Roles(ApiKeyRoles.ADMIN)
   @ApiOperation({ summary: 'Create a new chat' })
   @ApiBody({ type: CreateChatDTO, description: 'Chat details' })
   @ApiOkResponseWithWrapper({
@@ -117,11 +101,11 @@ export class ChatController {
     @Body() createChatDto: CreateChatDTO,
     @ApiKeyEntity() apiKey: ApiKey,
   ): Promise<ChatResponseDTO> {
-    return await this.chatService.create(apiKey.id, createChatDto);
+    return this.chatService.create(apiKey.id, createChatDto);
   }
 
   @Put(':chatId')
-  @Roles(AppRoles.ADMIN)
+  @Roles(ApiKeyRoles.ADMIN)
   @ApiOperation({ summary: 'Update a chat by ID' })
   @ApiParam({ name: 'chatId', description: 'ID of the chat to update' })
   @ApiBody({ type: UpdateChatDTO, description: 'Updated details for the chat' })
@@ -131,14 +115,20 @@ export class ChatController {
     type: ChatResponseDTO,
   })
   async update(
-    @Param('chatId', new ParseIntPipe()) chatId: number,
+    @Param('chatId') chatId: string,
     @Body() updateChatDto: UpdateChatDTO,
   ): Promise<ChatResponseDTO> {
-    return await this.chatService.update(chatId, updateChatDto);
+    const updatedChat = await this.chatService.update(chatId, updateChatDto);
+
+    if (!updatedChat) {
+      throw new NotFoundException(`Chat with ID ${chatId} not found`);
+    }
+
+    return updatedChat;
   }
 
   @Delete(':chatId')
-  @Roles(AppRoles.ADMIN)
+  @Roles(ApiKeyRoles.ADMIN)
   @ApiOperation({ summary: 'Delete a chat by ID' })
   @ApiParam({ name: 'chatId', description: 'ID of the chat to delete' })
   @ApiOkResponseWithWrapper({
@@ -146,8 +136,19 @@ export class ChatController {
     status: 200,
   })
   async delete(
-    @Param('chatId', new ParseIntPipe()) chatId: number,
-  ): Promise<void> {
+    @Param('chatId') chatId: string,
+  ): Promise<{ statusCode: number; message: string }> {
+    const chat = await this.chatService.findOne(chatId);
+
+    if (!chat) {
+      throw new NotFoundException(`Chat with ID ${chatId} not found`);
+    }
+
     await this.chatService.delete(chatId);
+
+    return {
+      statusCode: 200,
+      message: 'Chat deleted successfully',
+    };
   }
 }

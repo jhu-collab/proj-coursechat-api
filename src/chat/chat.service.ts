@@ -1,92 +1,137 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { Chat } from './chat.entity';
-import { CreateChatDTO } from './dto/create-chat.dto';
-import { UpdateChatDTO } from './dto/update-chat.dto';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
+import { Chat } from './chat.entity';
+import { CreateChatDTO } from './chat-create.dto';
+import { UpdateChatDTO } from './chat-update.dto';
+import { FindChatsQueryDTO } from './chat-find-query.dto';
+import { SortOrder } from 'src/dto/sort-order.enum';
 
+/**
+ * Service handling operations related to chat sessions.
+ */
 @Injectable()
 export class ChatService {
+  private readonly logger = new Logger(ChatService.name);
+
+  /**
+   * Constructor for ChatService.
+   *
+   * @param {Repository<Chat>} chatRepository - The repository for Chat entity.
+   */
   constructor(
-    @InjectRepository(Chat) private chatRepository: Repository<Chat>,
+    @InjectRepository(Chat)
+    private chatRepository: Repository<Chat>,
   ) {}
 
-  async findAll(
-    search?: string,
-    limit?: number,
-    offset?: number,
-    apiKeyId?: number,
-  ): Promise<Chat[]> {
-    const queryBuilder = this.chatRepository.createQueryBuilder('chat');
-    let hasWhereCondition = false;
+  /**
+   * Finds all chats based on the provided query parameters.
+   *
+   * @param {FindChatsQueryDTO} query - Query parameters for searching and sorting chats.
+   * @returns {Promise<Chat[]>} - Array of Chat entities.
+   */
+  async findAll(query: FindChatsQueryDTO): Promise<Chat[]> {
+    this.logger.verbose(
+      `Finding all chats with query: ${JSON.stringify(query)}`,
+    );
 
-    if (search !== undefined) {
-      queryBuilder.where('chat.title ILIKE :search', { search: `%${search}%` });
-      hasWhereCondition = true;
-    }
+    const {
+      limit,
+      offset,
+      search,
+      apiKeyId,
+      assistantName,
+      username,
+      sortOrder = SortOrder.DESC,
+    } = query;
+    const title = search ? ILike(`%${search}%`) : undefined;
 
-    if (apiKeyId !== undefined) {
-      if (hasWhereCondition) {
-        queryBuilder.andWhere('chat.apiKeyId = :apiKeyId', { apiKeyId });
-      } else {
-        queryBuilder.where('chat.apiKeyId = :apiKeyId', { apiKeyId });
-        hasWhereCondition = true;
-      }
-    }
+    const chats = await this.chatRepository.find({
+      take: limit,
+      skip: offset,
+      where: { title, apiKeyId, assistantName, username },
+      order: { createdAt: sortOrder },
+    });
 
-    if (limit !== undefined) {
-      queryBuilder.limit(limit);
-    }
-
-    if (offset !== undefined) {
-      queryBuilder.offset(offset);
-    }
-
-    return await queryBuilder.getMany();
+    this.logger.verbose(`Found ${chats.length} chats`);
+    return chats;
   }
 
-  async findOne(chatId: number, apiKeyId?: number): Promise<Chat> {
-    const filter = { id: chatId };
-    if (apiKeyId !== undefined) {
-      filter['apiKeyId'] = apiKeyId;
-    }
-    const chat = await this.chatRepository.findOne({ where: filter });
-    if (!chat) {
-      let message = `Chat with ID ${chatId} not found`;
-      if (apiKeyId !== undefined) {
-        message += ` for the given API Key.`;
-      }
-      throw new NotFoundException(message);
-    }
-    return chat;
+  /**
+   * Finds a single chat by its ID.
+   *
+   * @param {string} chatId - The ID of the chat to find.
+   * @param {string} [apiKeyId] - Optional API key ID for additional filtering.
+   * @returns {Promise<Chat | null>} - The Chat entity or null if not found.
+   */
+  async findOne(chatId: string, apiKeyId?: string): Promise<Chat | null> {
+    this.logger.verbose(`Finding chat with ID: ${chatId}`);
+
+    return this.chatRepository.findOne({
+      where: { id: chatId, apiKeyId },
+    });
   }
 
-  async findOneOrReturnNull(chatId: number): Promise<Chat | null> {
-    return await this.chatRepository.findOneBy({ id: chatId });
-  }
+  /**
+   * Creates a new chat with the given details.
+   *
+   * @param {string} apiKeyId - The API key ID associated with the chat.
+   * @param {CreateChatDTO} createChatDto - DTO with data for the new chat.
+   * @returns {Promise<Chat>} - The newly created Chat entity.
+   */
+  async create(apiKeyId: string, createChatDto: CreateChatDTO): Promise<Chat> {
+    this.logger.verbose(`Creating new chat`);
 
-  // pre: apiKeyId is valid
-  async create(apiKeyId: number, createChatDto: CreateChatDTO): Promise<Chat> {
     const chat = this.chatRepository.create({ ...createChatDto, apiKeyId });
-    return await this.chatRepository.save(chat);
+    return this.chatRepository.save(chat);
   }
 
+  /**
+   * Updates an existing chat identified by its ID.
+   *
+   * @param {string} chatId - The ID of the chat to update.
+   * @param {UpdateChatDTO} updateChatDto - DTO with updated data.
+   * @param {string} [apiKeyId] - Optional API key ID for additional filtering.
+   * @returns {Promise<Chat | null>} - The updated Chat entity or null if not found.
+   */
   async update(
-    chatId: number,
+    chatId: string,
     updateChatDto: UpdateChatDTO,
-    apiKeyId?: number,
-  ): Promise<Chat> {
-    const chat = await this.findOne(chatId, apiKeyId); // This will throw NotFoundException if not found
-    for (const key of Object.keys(updateChatDto)) {
-      if (updateChatDto[key] !== undefined) {
-        chat[key] = updateChatDto[key];
-      }
+    apiKeyId?: string,
+  ): Promise<Chat | null> {
+    this.logger.verbose(`Updating chat with ID: ${chatId}`);
+
+    const chat = await this.chatRepository.preload({
+      id: chatId,
+      apiKeyId,
+      ...updateChatDto,
+    });
+
+    if (!chat) {
+      this.logger.warn(`Chat with ID ${chatId} not found`);
+      return null;
     }
-    return await this.chatRepository.save(chat);
+
+    return this.chatRepository.save(chat);
   }
 
-  async delete(chatId: number, apiKeyId?: number): Promise<void> {
-    const chat = await this.findOne(chatId, apiKeyId); // This will throw NotFoundException if not found
-    await this.chatRepository.remove(chat);
+  /**
+   * Deletes a chat identified by its ID.
+   *
+   * @param {string} chatId - The ID of the chat to delete.
+   * @param {string} [apiKeyId] - Optional API key ID for additional filtering.
+   * @returns {Promise<Chat | null>} - The deleted Chat entity or null if not found.
+   */
+  async delete(chatId: string, apiKeyId?: string): Promise<Chat | null> {
+    this.logger.verbose(`Deleting chat with ID: ${chatId}`);
+
+    const chat = await this.findOne(chatId, apiKeyId);
+
+    if (!chat) {
+      this.logger.warn(`Chat with ID ${chatId} not found`);
+      return null;
+    }
+
+    return this.chatRepository.remove(chat);
   }
 }

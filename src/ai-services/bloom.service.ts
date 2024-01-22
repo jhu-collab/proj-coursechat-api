@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { BaseAssistantService } from './base-assistant.service';
+import { BaseAssistantService } from './assistant-00-base.service';
 import { MessageService } from 'src/message/message.service';
-import { dynamicImport } from 'src/utils/dynamic-import.utils';
+import { dynamicImport } from 'src/ai-services/assistant.utils';
+import { MessageRoles } from 'src/message/message-roles.enum';
 
 @Injectable()
 export class BloomService extends BaseAssistantService {
@@ -18,11 +19,11 @@ export class BloomService extends BaseAssistantService {
 
   public async generateResponse(
     input: string,
-    chatId: number,
+    chatId: string,
   ): Promise<string> {
     let context = '';
     if (chatId) {
-      const messages = await this.messageService.findAll(chatId);
+      const messages = await this.messageService.findAll({ chatId });
       context = messages
         .map((m) => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`)
         .join('\n');
@@ -97,13 +98,13 @@ export class BloomService extends BaseAssistantService {
     if (chatId) {
       await this.messageService.create(chatId, {
         content: input,
-        role: 'user',
+        role: MessageRoles.USER,
       });
 
       if (response.text) {
         await this.messageService.create(chatId, {
           content: response.text,
-          role: 'assistant',
+          role: MessageRoles.ASSISTANT,
         });
       }
 

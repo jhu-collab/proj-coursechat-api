@@ -1,80 +1,130 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { Message } from './message.entity';
-import { UpdateMessageDTO } from './dto/update-message.dto';
-import { CreateMessageDTO } from './dto/create-message.dto';
+import { CreateMessageDTO } from './message-create.dto';
+import { UpdateMessageDTO } from './message-update.dto';
+import { FindMessagesQueryDTO } from './message-find-query.dto';
+import { SortOrder } from 'src/dto/sort-order.enum';
 
+/**
+ * Service handling operations related to messages.
+ */
 @Injectable()
 export class MessageService {
+  private readonly logger = new Logger(MessageService.name);
+
+  /**
+   * Constructor for MessageService.
+   *
+   * @param {Repository<Message>} messageRepository - The repository for Message entity.
+   */
   constructor(
     @InjectRepository(Message)
     private messageRepository: Repository<Message>,
   ) {}
 
-  // pre: chatId is valid
-  async findAll(
-    chatId: number,
-    search?: string,
-    limit?: number,
-    offset?: number,
-  ): Promise<Message[]> {
-    const queryBuilder = this.messageRepository.createQueryBuilder('message');
+  /**
+   * Finds all messages based on the provided query parameters.
+   *
+   * @param {FindMessagesQueryDTO} query - Query parameters for searching and sorting messages.
+   * @returns {Promise<Message[]>} - Array of Message entities.
+   */
+  async findAll(query: FindMessagesQueryDTO): Promise<Message[]> {
+    this.logger.verbose(
+      `Finding all messages with query: ${JSON.stringify(query)}`,
+    );
 
-    queryBuilder
-      .where('message.chatId=:chatId', { chatId })
-      .orderBy('message.createdAt', 'ASC');
+    const { limit, offset, search, chatId, sortOrder = SortOrder.ASC } = query;
+    const content = search ? ILike(`%${search}%`) : undefined;
 
-    if (search) {
-      queryBuilder.andWhere('message.content ILIKE :search', {
-        search: `%${search}%`,
-      });
-    }
+    const messages = await this.messageRepository.find({
+      take: limit,
+      skip: offset,
+      where: { content, chatId },
+      order: { createdAt: sortOrder },
+    });
 
-    if (limit !== undefined) {
-      queryBuilder.limit(limit);
-    }
-
-    if (offset !== undefined) {
-      queryBuilder.offset(offset);
-    }
-
-    return await queryBuilder.getMany();
+    this.logger.verbose(`Found ${messages.length} messages`);
+    return messages;
   }
 
-  async findOne(messageId: number): Promise<Message> {
-    const message = await this.messageRepository.findOneBy({ id: messageId });
-    if (!message) {
-      throw new NotFoundException(`Message with ID ${messageId} not found`);
-    }
-    return message;
+  /**
+   * Finds a single message by its ID.
+   *
+   * @param {string} messageId - The ID of the message to find.
+   * @returns {Promise<Message | null>} - The Message entity or null if not found.
+   */
+  async findOne(messageId: string): Promise<Message | null> {
+    this.logger.verbose(`Finding message with ID: ${messageId}`);
+
+    return this.messageRepository.findOne({
+      where: { id: messageId },
+    });
   }
 
-  // pre: chatId is valid
+  /**
+   * Creates a new message with the given details.
+   *
+   * @param {string} chatId - The chat ID associated with the message.
+   * @param {CreateMessageDTO} createMessageDto - DTO with data for the new message.
+   * @returns {Promise<Message>} - The newly created Message entity.
+   */
   async create(
-    chatId: number,
+    chatId: string,
     createMessageDto: CreateMessageDTO,
   ): Promise<Message> {
-    const message = this.messageRepository.create(createMessageDto);
-    message.chatId = chatId;
-    return await this.messageRepository.save(message);
+    this.logger.verbose(`Creating new message`);
+
+    const message = this.messageRepository.create({
+      ...createMessageDto,
+      chatId,
+    });
+    return this.messageRepository.save(message);
   }
 
+  /**
+   * Updates an existing message identified by its ID.
+   *
+   * @param {string} messageId - The ID of the message to update.
+   * @param {UpdateMessageDTO} updateMessageDto - DTO with updated data.
+   * @returns {Promise<Message | null>} - The updated Message entity or null if not found.
+   */
   async update(
-    messageId: number,
+    messageId: string,
     updateMessageDto: UpdateMessageDTO,
-  ): Promise<Message> {
-    const message = await this.findOne(messageId); // throws NotFoundException if not found
-    for (const key of Object.keys(updateMessageDto)) {
-      if (updateMessageDto[key] !== undefined) {
-        message[key] = updateMessageDto[key];
-      }
+  ): Promise<Message | null> {
+    this.logger.verbose(`Updating message with ID: ${messageId}`);
+
+    const message = await this.messageRepository.preload({
+      id: messageId,
+      ...updateMessageDto,
+    });
+
+    if (!message) {
+      this.logger.warn(`Message with ID ${messageId} not found`);
+      return null;
     }
-    return await this.messageRepository.save(message);
+
+    return this.messageRepository.save(message);
   }
 
-  async delete(messageId: number): Promise<void> {
-    const message = await this.findOne(messageId); // throws NotFoundException if not found
-    await this.messageRepository.remove(message);
+  /**
+   * Deletes a message identified by its ID.
+   *
+   * @param {string} messageId - The ID of the message to delete.
+   * @returns {Promise<Message | null>} - The deleted Message entity or null if not found.
+   */
+  async delete(messageId: string): Promise<Message | null> {
+    this.logger.verbose(`Deleting message with ID: ${messageId}`);
+
+    const message = await this.findOne(messageId);
+
+    if (!message) {
+      this.logger.warn(`Message with ID ${messageId} not found`);
+      return null;
+    }
+
+    return this.messageRepository.remove(message);
   }
 }

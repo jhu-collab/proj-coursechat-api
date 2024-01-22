@@ -17,24 +17,30 @@ import { AssistantService } from './assistant/assistant.service';
 import { AssistantController } from './assistant/assistant.controller';
 import { Assistant } from './assistant/assistant.entity';
 import { ExtractApiKeyMiddleware } from './middleware/extract-api-key.middleware';
-import { ConversationService } from './conversation/conversation.service';
 import { ConversationController } from './conversation/conversation.controller';
 import { AssistantManagerService } from './ai-services/assistant-manager.service';
-import { ParrotService } from './ai-services/parrot.service';
-import { DoryService } from './ai-services/dory.service';
-import { Gpt4Service } from './ai-services/gpt-4.service';
+import { ParrotService } from './ai-services/assistant-01-parrot.service';
+import { DoryService } from './ai-services/assistant-02-dory.service';
 import { BloomService } from './ai-services/bloom.service';
-import { ElephantService } from './ai-services/elephant.service';
-import { MementoService } from './ai-services/memento.service';
-import { FinchService } from './ai-services/finch.service';
+import { ElephantService } from './ai-services/assistant-03-elephant.service';
+import { MementoService } from './ai-services/assistant-04-memento.service';
+import { FinchService } from './ai-services/assistant-05-finch.service';
+import { validate } from './env.validation';
+import { DevtoolsModule } from '@nestjs/devtools-integration';
 
 @Module({
   imports: [
+    DevtoolsModule.register({
+      http: process.env.NODE_ENV !== 'production',
+      port: parseInt(process.env.DEVTOOLS_PORT) || 3001,
+    }),
     CacheModule.register({
       ttl: 5, // seconds
       max: 10, // maximum number of items in cache
     }),
-    ConfigModule.forRoot(), // Load the .env file
+    ConfigModule.forRoot({
+      validate, // Validate the .env file
+    }), // Loads the .env file
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
@@ -65,11 +71,9 @@ import { FinchService } from './ai-services/finch.service';
     MessageService,
     ApiKeyService,
     AssistantService,
-    ConversationService,
     AssistantManagerService,
     ParrotService,
     DoryService,
-    Gpt4Service,
     BloomService,
     ElephantService,
     MementoService,

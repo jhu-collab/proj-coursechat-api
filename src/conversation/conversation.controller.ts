@@ -48,6 +48,8 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { DefaultPaginationInterceptor } from 'src/interceptors/default-pagination.interceptor';
 import { Response } from 'express';
 import { IterableReadableStreamInterface } from 'src/ai-services/assistant-00-base.service';
+import OpenAI from 'openai';
+// import { OpenAi } from openai;
 
 @ApiTags('Conversations')
 @CommonApiResponses()
@@ -156,6 +158,15 @@ export class ConversationController {
         content: message,
         role: MessageRoles.USER,
       });
+      let threadId = null;
+      if (chat.assistantName === 'indian-elephant') {
+        // create thread for an openai assistant. Maybe we should do this inside the assistant manager service?
+        // cannot put this inside `generateResponse` since it is used for the continue conversation endpoint as well
+        const openai = new OpenAI({
+          apiKey: process.env.OPENAI_API_KEY,
+        });
+        threadId = (await openai.beta.threads.create()).id;
+      }
 
       // Generate response using the associated assistant
       const responseStream =
@@ -207,6 +218,7 @@ export class ConversationController {
             data: {
               chatId: chat.id,
               response,
+              threadId,
             },
           }),
         );

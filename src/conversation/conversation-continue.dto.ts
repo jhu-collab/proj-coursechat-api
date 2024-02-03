@@ -37,4 +37,16 @@ export class ContinueConversationDTO {
   })
   @IsBoolean()
   stream: boolean = true;
+
+  /**
+   * The OpenAI Thread ID for the conversation.
+   *
+   * @ApiProperty - Documents this property in Swagger, indicating its role in the conversation.
+   * @IsNotEmpty - Ensures the message content is not an empty string.
+   * @IsString - Validates that the message content is a string.
+   */
+  @ApiProperty({ description: 'OpenAI Thread ID' })
+  @IsNotEmpty()
+  @IsString()
+  openaiThreadId: string;
 }

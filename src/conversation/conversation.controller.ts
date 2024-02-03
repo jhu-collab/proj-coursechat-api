@@ -151,6 +151,7 @@ export class ConversationController {
     @Res({ passthrough: false }) res: Response,
   ) {
     try {
+      console.log('in start conversation');
       const { message, stream, ...createChatDto } = startConversationDto;
       const chat = await this.chatService.create(apiKey.id, createChatDto);
 
@@ -158,14 +159,14 @@ export class ConversationController {
         content: message,
         role: MessageRoles.USER,
       });
-      let threadId = null;
+      let openaiThreadId = null;
       if (chat.assistantName === 'indian-elephant') {
         // create thread for an openai assistant. Maybe we should do this inside the assistant manager service?
         // cannot put this inside `generateResponse` since it is used for the continue conversation endpoint as well
         const openai = new OpenAI({
           apiKey: process.env.OPENAI_API_KEY,
         });
-        threadId = (await openai.beta.threads.create()).id;
+        openaiThreadId = (await openai.beta.threads.create()).id;
       }
 
       // Generate response using the associated assistant
@@ -174,6 +175,7 @@ export class ConversationController {
           chat.assistantName,
           message,
           chat.id, // Pass chat.id as chatId
+          openaiThreadId,
         )) as IterableReadableStreamInterface<string>;
 
       if (!responseStream) {
@@ -218,7 +220,7 @@ export class ConversationController {
             data: {
               chatId: chat.id,
               response,
-              threadId,
+              openaiThreadId,
             },
           }),
         );
@@ -257,6 +259,8 @@ export class ConversationController {
     const chatCacheKey = `chat_${chatId}`;
     let chat = await this.cacheManager.get<Chat>(chatCacheKey);
 
+    console.log('in continue conversation');
+
     if (!chat) {
       chat = await this.chatService.findOne(chatId, apiKeyId);
 
@@ -276,7 +280,7 @@ export class ConversationController {
       }
     }
 
-    const { message, stream } = continueConversationDto;
+    const { message, stream, openaiThreadId } = continueConversationDto;
 
     try {
       await this.messageService.create(chatId, {
@@ -290,6 +294,7 @@ export class ConversationController {
           chat.assistantName,
           message,
           chatId,
+          openaiThreadId,
         )) as IterableReadableStreamInterface<string>;
 
       if (!responseStream) {

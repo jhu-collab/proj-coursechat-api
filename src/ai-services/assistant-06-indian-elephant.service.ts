@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { BaseAssistantService } from './assistant-00-base.service';
+import { BaseAssistantService, IterableReadableStreamInterface } from './assistant-00-base.service';
 import OpenAI from 'openai';
 import { MessageContentText } from 'openai/resources/beta/threads/messages/messages';
 
@@ -29,7 +29,7 @@ export class IndianElephant extends BaseAssistantService {
     input: string,
     chatId?: string,
     openaiThreadId?: string,
-  ): Promise<string> {
+  ): Promise<string | IterableReadableStreamInterface<string>> {
     this.logger.verbose(
       `Generating response for input: ${input} in chat: ${chatId || 'N/A'}`,
     );

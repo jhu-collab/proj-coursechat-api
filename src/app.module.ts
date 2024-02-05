@@ -27,6 +27,7 @@ import { MementoService } from './ai-services/assistant-04-memento.service';
 import { FinchService } from './ai-services/assistant-05-finch.service';
 import { validate } from './env.validation';
 import { DevtoolsModule } from '@nestjs/devtools-integration';
+import { IndianElephant } from './ai-services/assistant-06-indian-elephant.service';
 
 @Module({
   imports: [
@@ -78,6 +79,7 @@ import { DevtoolsModule } from '@nestjs/devtools-integration';
     ElephantService,
     MementoService,
     FinchService,
+    IndianElephant,
   ],
 })
 export class AppModule {

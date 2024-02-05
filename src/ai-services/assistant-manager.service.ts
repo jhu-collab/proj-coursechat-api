@@ -10,6 +10,7 @@ import { AssistantService } from 'src/assistant/assistant.service';
 import { ElephantService } from './assistant-03-elephant.service';
 import { MementoService } from './assistant-04-memento.service';
 import { FinchService } from './assistant-05-finch.service';
+import { IndianElephant } from './assistant-06-indian-elephant.service';
 
 /**
  * Service managing different AI assistants.
@@ -45,6 +46,7 @@ export class AssistantManagerService {
     private elephantService: ElephantService,
     private mementoService: MementoService,
     private finchService: FinchService,
+    private indianElephantService: IndianElephant,
   ) {}
 
   /**
@@ -59,6 +61,7 @@ export class AssistantManagerService {
     this.assistants.set('elephant', this.elephantService);
     this.assistants.set('memento', this.mementoService);
     this.assistants.set('finch', this.finchService);
+    this.assistants.set('indian-elephant', this.indianElephantService);
 
     await this.synchronizeWithServices();
     this.logger.log('Synchronized AI services with the database.');
@@ -76,6 +79,7 @@ export class AssistantManagerService {
     assistantName: string,
     input: string,
     chatId?: string,
+    openaiThreadId?: string,
   ): Promise<string | IterableReadableStreamInterface<string>> {
     this.logger.verbose(
       `Generating response with ${assistantName} for input: ${input}`,
@@ -84,7 +88,7 @@ export class AssistantManagerService {
     if (!service) {
       throw new Error(`Unknown assistant: ${assistantName}`);
     }
-    return service.generateResponse(input, chatId);
+    return service.generateResponse(input, chatId, openaiThreadId);
   }
 
   /**

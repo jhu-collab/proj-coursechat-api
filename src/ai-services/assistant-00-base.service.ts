@@ -31,6 +31,7 @@ export abstract class BaseAssistantService {
   public async generateResponse(
     input: string,
     chatId?: string,
+    openaiThreadId?: string,
   ): Promise<string | IterableReadableStreamInterface<string>> {
     this.logger.verbose(
       `Generating response for input: ${input}, chatId: ${chatId}`,

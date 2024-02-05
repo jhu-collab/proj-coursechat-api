@@ -42,10 +42,7 @@ export class ParrotService extends BaseAssistantService {
       `Generating response for input: ${input}, chatId: ${chatId}`,
     );
 
-    let response = `Response from ${this.modelName}: ${input}`;
-    if (chatId !== undefined) {
-      response += ` for chatId ${chatId}`;
-    }
+    const response = `Received \"${input}\"`;
 
     this.logger.verbose(`Generated response: ${response}`);
 

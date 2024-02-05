@@ -23,6 +23,12 @@ class EnvironmentVariables {
 
   @IsString()
   OPENAI_API_KEY: string;
+
+  @IsString()
+  UPSTASH_REDIS_REST_TOKEN: string;
+
+  @IsString()
+  UPSTASH_REDIS_REST_URL: string;
 }
 
 export function validate(config: Record<string, unknown>) {

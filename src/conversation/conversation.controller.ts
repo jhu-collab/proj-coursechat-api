@@ -209,6 +209,7 @@ export class ConversationController {
               'Chat created successfully, message stored and AI response sent back',
             data: {
               chatId: chat.id,
+              metadata: chat.metadata,
               response,
             },
           }),
@@ -323,6 +324,7 @@ export class ConversationController {
             message: 'Message stored and AI response sent back',
             data: {
               chatId,
+              metadata: chat.metadata,
               response,
             },
           }),

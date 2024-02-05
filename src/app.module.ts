@@ -28,7 +28,7 @@ import { FinchService } from './ai-services/assistant-05-finch.service';
 import { validate } from './env.validation';
 import { DevtoolsModule } from '@nestjs/devtools-integration';
 import { AtlasService } from './ai-services/assistant-90-atlas-service';
-import { SocketAddress } from 'net';
+import { SocratesService } from './ai-services/assistant-91-socrates-service';
 
 @Module({
   imports: [
@@ -81,7 +81,7 @@ import { SocketAddress } from 'net';
     MementoService,
     FinchService,
     AtlasService,
-    SocketAddress,
+    SocratesService,
   ],
 })
 export class AppModule {

@@ -56,4 +56,18 @@ export class CreateChatDTO {
   @IsOptional()
   @Length(1, 255)
   username?: string;
+
+  /**
+   * Additional metadata for the chat.
+   * This field can store any additional information that needs to be associated with the chat.
+   * It is allowed to be null.
+   *
+   * @ApiPropertyOptional - Documents this property in Swagger as optional, indicating its role and constraints.
+   * @IsOptional - Indicates that the metadata is not a required field.
+   */
+  @ApiPropertyOptional({
+    description: 'Additional metadata for the chat',
+  })
+  @IsOptional()
+  metadata?: Record<string, any>;
 }

@@ -92,4 +92,11 @@ export class Chat {
   @Index()
   @Column({ type: 'varchar', length: 255, nullable: true })
   username: string | null;
+
+  /**
+   * Optional metadata associated with the chat.
+   * This field can store any additional information about the chat session.
+   */
+  @Column({ type: 'jsonb', default: {} })
+  metadata: Record<string, any>;
 }

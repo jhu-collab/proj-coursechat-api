@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ParrotService } from './assistant-01-parrot.service';
 import { DoryService } from './assistant-02-dory.service';
 import { BloomService } from './bloom.service';
+import { Bloom2Service } from './assistant-07-bloom2.service';
 import {
   BaseAssistantService,
   IterableReadableStreamInterface,
@@ -42,6 +43,7 @@ export class AssistantManagerService {
     private parrotService: ParrotService,
     private doryService: DoryService,
     private bloomService: BloomService,
+    private bloom2Service: Bloom2Service,
     private elephantService: ElephantService,
     private mementoService: MementoService,
     private finchService: FinchService,
@@ -56,6 +58,7 @@ export class AssistantManagerService {
     this.assistants.set('parrot', this.parrotService);
     this.assistants.set('dory', this.doryService);
     this.assistants.set('bloom', this.bloomService);
+    this.assistants.set('bloom2', this.bloom2Service);
     this.assistants.set('elephant', this.elephantService);
     this.assistants.set('memento', this.mementoService);
     this.assistants.set('finch', this.finchService);

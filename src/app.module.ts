@@ -22,6 +22,7 @@ import { AssistantManagerService } from './ai-services/assistant-manager.service
 import { ParrotService } from './ai-services/assistant-01-parrot.service';
 import { DoryService } from './ai-services/assistant-02-dory.service';
 import { BloomService } from './ai-services/bloom.service';
+import { Bloom2Service } from './ai-services/assistant-07-bloom2.service';
 import { ElephantService } from './ai-services/assistant-03-elephant.service';
 import { MementoService } from './ai-services/assistant-04-memento.service';
 import { FinchService } from './ai-services/assistant-05-finch.service';
@@ -75,6 +76,7 @@ import { DevtoolsModule } from '@nestjs/devtools-integration';
     ParrotService,
     DoryService,
     BloomService,
+    Bloom2Service,
     ElephantService,
     MementoService,
     FinchService,

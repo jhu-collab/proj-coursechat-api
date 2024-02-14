@@ -1,5 +1,11 @@
 import { plainToInstance } from 'class-transformer';
-import { IsNumber, IsString, IsEnum, validateSync } from 'class-validator';
+import {
+  IsNumber,
+  IsString,
+  IsEnum,
+  validateSync,
+  IsBoolean,
+} from 'class-validator';
 import { Environment } from './env.enum';
 
 class EnvironmentVariables {
@@ -24,11 +30,14 @@ class EnvironmentVariables {
   @IsString()
   OPENAI_API_KEY: string;
 
-  @IsString()
-  UPSTASH_REDIS_REST_TOKEN: string;
+  @IsBoolean()
+  LANGCHAIN_TRACING_V2: boolean;
 
   @IsString()
-  UPSTASH_REDIS_REST_URL: string;
+  LANGCHAIN_ENDPOINT: string;
+
+  @IsString()
+  LANGCHAIN_API_KEY: string;
 }
 
 export function validate(config: Record<string, unknown>) {

@@ -3,7 +3,6 @@ import { ConfigService } from '@nestjs/config';
 import { BaseAssistantService } from './assistant-00-base.service';
 import { dynamicImport } from 'src/ai-services/assistant.utils';
 import { MessageService } from 'src/message/message.service';
-import { Redis } from '@upstash/redis';
 
 @Injectable()
 export class SocratesService extends BaseAssistantService {
@@ -35,24 +34,28 @@ that empowers you to become a more independent and thoughtful coder.`;
       `Generating response for input: ${input} in chat: ${chatId || 'N/A'}`,
     );
 
-    const { ChatOpenAI } = await dynamicImport('@langchain/openai');
+    const { Client } = await dynamicImport('langsmith');
+    // Initialize the LangSmith client
+    const client = new Client({
+      apiUrl: this.configService.get<string>('LANGCHAIN_ENDPOINT'),
+      apiKey: this.configService.get<string>('LANGCHAIN_API_KEY'),
+    });
+
+    const { LangChainTracer } = await dynamicImport(
+      '@langchain/core/tracers/tracer_langchain',
+    );
+    // Initialize the LangChainTracer
+    const tracer = new LangChainTracer({
+      projectName: 'socrates-spring-24',
+      client,
+    });
+
     const { StringOutputParser } = await dynamicImport(
       '@langchain/core/output_parsers',
     );
-    const { ConversationSummaryBufferMemory } =
-      await dynamicImport('langchain/memory');
-    const { UpstashRedisChatMessageHistory } = await dynamicImport(
-      '@langchain/community/stores/message/upstash_redis',
-    );
-    const { ChatPromptTemplate, MessagesPlaceholder } = await dynamicImport(
-      '@langchain/core/prompts',
-    );
-    const { RunnableSequence } = await dynamicImport(
-      '@langchain/core/runnables',
-    );
-
     const parser = new StringOutputParser();
 
+    const { ChatOpenAI } = await dynamicImport('@langchain/openai');
     const chatModel = new ChatOpenAI({
       openAIApiKey: this.configService.get<string>('OPENAI_API_KEY'),
       modelName: 'gpt-4-1106-preview',
@@ -61,94 +64,57 @@ that empowers you to become a more independent and thoughtful coder.`;
       verbose: false,
     });
 
-    const summaryModel = new ChatOpenAI({
-      openAIApiKey: this.configService.get<string>('OPENAI_API_KEY'),
-      modelName: 'gpt-3.5-turbo-16k',
-      temperature: 0,
-      streaming: false,
-      verbose: false,
-    });
-
-    const memory = new ConversationSummaryBufferMemory({
-      returnMessages: true,
-      inputKey: 'input',
-      outputKey: 'output',
-      memoryKey: 'history',
-      chatHistory: new UpstashRedisChatMessageHistory({
-        sessionId: chatId || new Date().toLocaleDateString(), // TODO - this should only be used when we have chatId,
-        //      and should be removed when we have a proper sessionId
-        client: new Redis({
-          url: this.configService.get<string>('UPSTASH_REDIS_REST_URL'),
-          token: this.configService.get<string>('UPSTASH_REDIS_REST_TOKEN'),
-        }),
-      }),
-      llm: summaryModel,
-      maxTokenLimit: 2000,
-    });
-
-    console.log(await memory.loadMemoryVariables({}));
+    const { ChatMessageHistory } = await dynamicImport('langchain/memory');
+    const chatHistory = new ChatMessageHistory();
 
     if (chatId) {
       // The last message is the user's input
       // The two messages before that are the user's input and the assistant's output respectively
       // which are not yet stored in the redis memory
-      const messages = await this.messageService.findLatestMessages(chatId, 3);
-      // FIXME: The assumption is that the last two messages are from the user and the assistant
-      if (messages.length === 3) {
-        this.logger.verbose(
-          `Fetched ${messages.length} past messages for chat: ${chatId}`,
-        );
-        await memory.saveContext(
-          { input: messages[0].content },
-          { output: messages[1].content },
-        );
+      const messages = await this.messageService.findLatestMessages(chatId, 17);
 
-        console.log(await memory.loadMemoryVariables({}));
-
-        // We don't need to save the last message as it is the user's input
-        // and we are already using it as the input to the assistant
-      } else {
-        this.logger.warn(
-          `Expected 3 messages for chat: ${chatId}, but got ${messages.length}`,
-        );
+      for (let i = 0; i < messages.length - 1; i = i + 2) {
+        await chatHistory.addUserMessage(messages[i].content);
+        await chatHistory.addAIChatMessage(messages[i + 1].content);
       }
     }
 
-    const SYSTEM_STRING = `You are a Teaching Assistant for EN.601.501 Computer Science Workshop at Johns Hopkins University, 
-instructed by Dr. Ali Madooei. This course emphasizes self-directed and self-regulated learning, aimed at enhancing coding 
-skills through solving challenges on LeetCode. It revolves around completing 150 selected LeetCode problems (NeetCode 150) 
-with a goal of solving at least 50 problems for 1 credit or 100 problems for 2 credits.
+    const SYSTEM_STRING = `You are a Socratic tutor and Teaching Assistant for EN.601.501 Computer Science Workshop at Johns Hopkins University. This course emphasizes mastery learning through engaging with coding challenges, specifically focusing on solving selected problems from LeetCode and NeetCode 150. Your role is to facilitate deep understanding and independent problem-solving skills in students without directly providing answers, even when directly asked for them.
 
-Your role is to assist students with questions related to coding problems, offering guidance, motivation, and tailored feedback 
-based on their individual queries and skill levels. Provide detailed, informative, and clear responses, maintaining a polite and 
-professional tone. If unsure of an answer, kindly admit so and suggest how students might find the information they need. 
-If additional information from the student is required to provide a helpful response, please request it clearly.
+In every interaction, regardless of the question's complexity or the directness of the request for solutions, your responses should:
+1. Guide the student with probing questions that encourage them to arrive at the answers on their own.
+2. Offer hints and suggest thinking frameworks that help break down the problem, always tailoring your approach to the student's current understanding and interest level.
+3. Encourage reflection on what the student already knows and how it can be applied to the problem at hand.
+4. Avoid giving away answers outright. Instead, lead the student to discover these through guided inquiry, even when explaining complex concepts or when the student seeks a straightforward answer.
+5. Maintain a supportive and positive tone, providing motivation and reinforcing the student's capacity for self-directed learning and problem-solving.
 
-Remember, this course is not just about earning credits; it's a commitment to a journey that sharpens crucial problem-solving 
-abilities for technical interviews and future careers in software development. Your support is key to helping students 
-navigate this journey successfully.`;
+For example, if a student directly asks for the solution to a problem, rather than providing it, ask them what steps they think they should take to approach the problem, what similar problems they've solved before, and what they learned from those experiences that could apply here. If explaining a concept or method is necessary, frame your explanation in a way that ends with a question prompting the student to think about how that concept applies to their current problem.
 
+Your goal is to foster an environment of productive struggle, where students feel supported in their journey towards understanding complex computer science concepts and developing strong problem-solving skills. Always conclude your interactions with a question that encourages further thought or exploration, even when clarifying misunderstandings or when a student is ready to end the conversation.`;
+
+    const { ChatPromptTemplate, MessagesPlaceholder } = await dynamicImport(
+      '@langchain/core/prompts',
+    );
     const prompt = ChatPromptTemplate.fromMessages([
       ['system', SYSTEM_STRING],
       new MessagesPlaceholder('history'),
       ['human', '{input}'],
     ]);
 
-    const chain = RunnableSequence.from([
-      {
-        input: (initialInput) => initialInput.input,
-        memory: () => memory.loadMemoryVariables({}),
-      },
-      {
-        input: (previousOutput) => previousOutput.input,
-        history: (previousOutput) => previousOutput.memory.history,
-      },
-      prompt,
-      chatModel,
-      parser,
-    ]);
+    const { RunnableWithMessageHistory } = await dynamicImport(
+      '@langchain/core/runnables',
+    );
+    const chain = new RunnableWithMessageHistory({
+      runnable: prompt.pipe(chatModel).pipe(parser),
+      getMessageHistory: (sessionId) => chatHistory,
+      historyMessagesKey: 'history',
+      inputMessagesKey: 'input',
+    });
 
-    const stream = await chain.stream({ input });
+    const stream = await chain.stream(
+      { input },
+      { callbacks: [tracer], configurable: { sessionId: chatId } },
+    );
 
     return stream;
   }

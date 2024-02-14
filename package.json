@@ -24,6 +24,7 @@
     "compodoc": "npx @compodoc/compodoc --theme readthedocs -p tsconfig.json -s -w"
   },
   "dependencies": {
+    "@langchain/community": "^0.0.26",
     "@langchain/core": "0.1.12",
     "@langchain/openai": "^0.0.11",
     "@nestjs/cache-manager": "^2.1.0",
@@ -34,11 +35,13 @@
     "@nestjs/platform-express": "^10.0.0",
     "@nestjs/swagger": "^7.1.13",
     "@nestjs/typeorm": "^10.0.0",
+    "@upstash/redis": "^1.28.3",
     "cache-manager": "^5.2.3",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
     "helmet": "^7.0.0",
     "langchain": "^0.1.2",
+    "langsmith": "0.0.69-rc0.0",
     "pg": "^8.11.3",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1",

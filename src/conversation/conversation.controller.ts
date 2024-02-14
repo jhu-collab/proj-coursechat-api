@@ -82,7 +82,10 @@ export class ConversationController {
     @ApiKeyEntity() apiKey: ApiKey,
     @Query() query: FindChatsQueryDTO,
   ): Promise<FindChatsResponseDTO> {
-    const chats: Chat[] = await this.chatService.findAll(query);
+    const chats: Chat[] = await this.chatService.findAll({
+      ...query,
+      apiKeyId: apiKey.role === ApiKeyRoles.CLIENT ? apiKey.id : undefined,
+    });
 
     return {
       ...query,

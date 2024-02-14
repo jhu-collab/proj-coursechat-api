@@ -64,6 +64,36 @@ export class MessageService {
   }
 
   /**
+   * Finds the last message(s) for a given chatId.
+   *
+   * @param {string} chatId - The chat ID to find the latest message(s) for.
+   * @param {number} count - The number of latest messages to retrieve. Defaults to 1.
+   * @returns {Promise<Message[] | null>} - The latest message(s) or null if not found.
+   */
+  async findLatestMessages(
+    chatId: string,
+    count: number = 1,
+  ): Promise<Message[] | null> {
+    this.logger.verbose(
+      `Finding the last ${count} message(s) for chatId: ${chatId}`,
+    );
+
+    const messages = await this.messageRepository.find({
+      where: { chatId: chatId },
+      order: { createdAt: 'DESC' }, // Order by creation time in descending order
+      take: count, // Limit the number of messages to retrieve
+    });
+
+    if (messages.length === 0) {
+      this.logger.warn(`No messages found for chatId ${chatId}`);
+      return null;
+    }
+
+    // Reverse the messages to maintain their original chronological order
+    return messages.reverse();
+  }
+
+  /**
    * Creates a new message with the given details.
    *
    * @param {string} chatId - The chat ID associated with the message.

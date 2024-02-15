@@ -45,7 +45,6 @@ export class AssistantController {
   constructor(private readonly assistantService: AssistantService) {}
 
   @Get()
-  @Roles(ApiKeyRoles.ADMIN, ApiKeyRoles.CLIENT)
   @ApiOperation({ summary: 'Retrieve a list of assistants' })
   @ApiQuery({
     type: FindAssistantsQueryDTO,
@@ -68,7 +67,6 @@ export class AssistantController {
   }
 
   @Get(':name')
-  @Roles(ApiKeyRoles.ADMIN, ApiKeyRoles.CLIENT)
   @ApiOperation({ summary: 'Retrieve a specific assistant by name' })
   @ApiParam({ name: 'name', description: 'Name of the assistant to retrieve' })
   @ApiOkResponseWithWrapper({

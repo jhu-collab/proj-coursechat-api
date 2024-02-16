@@ -102,7 +102,7 @@ Your goal is to foster an environment of productive struggle, where students fee
     );
     const chain = new RunnableWithMessageHistory({
       runnable: prompt.pipe(chatModel).pipe(parser),
-      getMessageHistory: (sessionId) => chatHistory,
+      getMessageHistory: () => chatHistory,
       historyMessagesKey: 'history',
       inputMessagesKey: 'input',
     });

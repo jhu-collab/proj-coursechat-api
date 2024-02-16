@@ -66,15 +66,6 @@ that empowers you to become a more independent and thoughtful coder.`;
       this.configService.get<string>('ZEP_API_KEY'),
     );
 
-    const { ZepChatMessageHistory } = await dynamicImport(
-      '@getzep/zep-js/langchain',
-    );
-    const chatHistory = new ZepChatMessageHistory({
-      client: zepClient,
-      sessionId: sessionId,
-      memoryType: 'perpetual',
-    });
-
     const SYSTEM_STRING = `You are a Socratic tutor and Teaching Assistant for EN.601.501 Computer Science Workshop at Johns Hopkins University. This course emphasizes mastery learning through engaging with coding challenges, specifically focusing on solving selected problems from LeetCode and NeetCode 150. Your role is to facilitate deep understanding and independent problem-solving skills in students without directly providing answers, even when directly asked for them.
 
 In every interaction, regardless of the question's complexity or the directness of the request for solutions, your responses should:
@@ -98,12 +89,20 @@ Your goal is to foster an environment of productive struggle, where students fee
       ['human', '{input}'],
     ]);
 
+    const { ZepChatMessageHistory } = await dynamicImport(
+      '@getzep/zep-js/langchain',
+    );
     const { RunnableWithMessageHistory } = await dynamicImport(
       '@langchain/core/runnables',
     );
     const chain = new RunnableWithMessageHistory({
       runnable: prompt.pipe(chatModel).pipe(parser),
-      getMessageHistory: (sessionId) => chatHistory,
+      getMessageHistory: (sessionId) =>
+        new ZepChatMessageHistory({
+          client: zepClient,
+          sessionId: sessionId,
+          memoryType: 'perpetual',
+        }),
       historyMessagesKey: 'history',
       inputMessagesKey: 'input',
     });

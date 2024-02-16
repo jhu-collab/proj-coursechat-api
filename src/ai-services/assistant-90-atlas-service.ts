@@ -93,7 +93,7 @@ If additional information from the student is required to provide a helpful resp
     );
     const chain = new RunnableWithMessageHistory({
       runnable: prompt.pipe(chatModel).pipe(parser),
-      getMessageHistory: (sessionId) => chatHistory,
+      getMessageHistory: () => chatHistory,
       historyMessagesKey: 'history',
       inputMessagesKey: 'input',
     });

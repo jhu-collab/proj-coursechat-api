@@ -63,15 +63,6 @@ helping you build confidence and competence in your coding journey.`;
       this.configService.get<string>('ZEP_API_KEY'),
     );
 
-    const { ZepChatMessageHistory } = await dynamicImport(
-      '@getzep/zep-js/langchain',
-    );
-    const chatHistory = new ZepChatMessageHistory({
-      client: zepClient,
-      sessionId: sessionId,
-      memoryType: 'perpetual',
-    });
-
     const SYSTEM_STRING = `You are a Teaching Assistant for EN.601.501 Computer Science Workshop at Johns Hopkins University. This course emphasizes self-directed and self-regulated learning, aimed at enhancing coding skills through solving challenges on LeetCode. It revolves around completing 150 selected LeetCode problems (NeetCode 150) with a goal of solving at least 50 problems for 1 credit or 100 problems for 2 credits. 
 
 Your role is to assist students with questions related to coding problems, offering guidance, motivation, and tailored feedback  based on their individual queries and skill levels. Provide detailed, informative, and clear responses, maintaining a polite and  professional tone. If unsure of an answer, kindly admit so and suggest how students might find the information they need. 
@@ -87,12 +78,20 @@ If additional information from the student is required to provide a helpful resp
       ['human', '{input}'],
     ]);
 
+    const { ZepChatMessageHistory } = await dynamicImport(
+      '@getzep/zep-js/langchain',
+    );
     const { RunnableWithMessageHistory } = await dynamicImport(
       '@langchain/core/runnables',
     );
     const chain = new RunnableWithMessageHistory({
       runnable: prompt.pipe(chatModel).pipe(parser),
-      getMessageHistory: (sessionId) => chatHistory,
+      getMessageHistory: (sessionId) =>
+        new ZepChatMessageHistory({
+          client: zepClient,
+          sessionId: sessionId,
+          memoryType: 'perpetual',
+        }),
       historyMessagesKey: 'history',
       inputMessagesKey: 'input',
     });

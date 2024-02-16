@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { BaseAssistantService } from './assistant-00-base.service';
 import { dynamicImport } from 'src/ai-services/assistant.utils';
 import { MessageService } from 'src/message/message.service';
+import { Client } from 'langsmith';
 
 @Injectable()
 export class SocratesService extends BaseAssistantService {
@@ -21,6 +22,7 @@ that empowers you to become a more independent and thoughtful coder.`;
   constructor(
     private readonly configService: ConfigService,
     private readonly messageService: MessageService,
+    @Inject('LANGSMITH_CLIENT') private readonly client: Client,
   ) {
     super();
     this.logger.log('Socrates initialized');
@@ -34,20 +36,13 @@ that empowers you to become a more independent and thoughtful coder.`;
       `Generating response for input: ${input} in chat: ${chatId || 'N/A'}`,
     );
 
-    const { Client } = await dynamicImport('langsmith');
-    // Initialize the LangSmith client
-    const client = new Client({
-      apiUrl: this.configService.get<string>('LANGCHAIN_ENDPOINT'),
-      apiKey: this.configService.get<string>('LANGCHAIN_API_KEY'),
-    });
-
     const { LangChainTracer } = await dynamicImport(
       '@langchain/core/tracers/tracer_langchain',
     );
     // Initialize the LangChainTracer
     const tracer = new LangChainTracer({
       projectName: 'socrates-spring-24',
-      client,
+      client: this.client,
     });
 
     const { StringOutputParser } = await dynamicImport(
@@ -98,6 +93,7 @@ Your goal is to foster an environment of productive struggle, where students fee
     const prompt = ChatPromptTemplate.fromMessages([
       ['system', SYSTEM_STRING],
       new MessagesPlaceholder('history'),
+      ['system', `Remember that you assist the user in a socratic style.`],
       ['human', '{input}'],
     ]);
 

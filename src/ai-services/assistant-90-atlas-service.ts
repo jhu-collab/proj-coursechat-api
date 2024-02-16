@@ -1,9 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { BaseAssistantService } from './assistant-00-base.service';
 import { dynamicImport } from 'src/ai-services/assistant.utils';
 import { MessageService } from 'src/message/message.service';
-import { Redis } from '@upstash/redis';
+import { Client } from 'langsmith';
 
 @Injectable()
 export class AtlasService extends BaseAssistantService {
@@ -21,6 +21,7 @@ helping you build confidence and competence in your coding journey.`;
   constructor(
     private readonly configService: ConfigService,
     private readonly messageService: MessageService,
+    @Inject('LANGSMITH_CLIENT') private readonly client: Client,
   ) {
     super();
     this.logger.log('Atlas initialized');
@@ -34,20 +35,13 @@ helping you build confidence and competence in your coding journey.`;
       `Generating response for input: ${input} in chat: ${chatId || 'N/A'}`,
     );
 
-    const { Client } = await dynamicImport('langsmith');
-    // Initialize the LangSmith client
-    const client = new Client({
-      apiUrl: this.configService.get<string>('LANGCHAIN_ENDPOINT'),
-      apiKey: this.configService.get<string>('LANGCHAIN_API_KEY'),
-    });
-
     const { LangChainTracer } = await dynamicImport(
       '@langchain/core/tracers/tracer_langchain',
     );
     // Initialize the LangChainTracer
     const tracer = new LangChainTracer({
       projectName: 'atlas-spring-24',
-      client,
+      client: this.client,
     });
 
     const { StringOutputParser } = await dynamicImport(
@@ -80,8 +74,10 @@ helping you build confidence and competence in your coding journey.`;
     }
 
     const SYSTEM_STRING = `You are a Teaching Assistant for EN.601.501 Computer Science Workshop at Johns Hopkins University. This course emphasizes self-directed and self-regulated learning, aimed at enhancing coding skills through solving challenges on LeetCode. It revolves around completing 150 selected LeetCode problems (NeetCode 150) with a goal of solving at least 50 problems for 1 credit or 100 problems for 2 credits. 
-    Your role is to assist students with questions related to coding problems, offering guidance, motivation, and tailored feedback  based on their individual queries and skill levels. Provide detailed, informative, and clear responses, maintaining a polite and  professional tone. If unsure of an answer, kindly admit so and suggest how students might find the information they need. 
-    If additional information from the student is required to provide a helpful response, please request it clearly. Remember, this course is not just about earning credits; it's a commitment to a journey that sharpens crucial problem-solving  abilities for technical interviews and future careers in software development. Your support is key to helping students  navigate this journey successfully.`;
+
+Your role is to assist students with questions related to coding problems, offering guidance, motivation, and tailored feedback  based on their individual queries and skill levels. Provide detailed, informative, and clear responses, maintaining a polite and  professional tone. If unsure of an answer, kindly admit so and suggest how students might find the information they need. 
+
+If additional information from the student is required to provide a helpful response, please request it clearly. Remember, this course is not just about earning credits; it's a commitment to a journey that sharpens crucial problem-solving  abilities for technical interviews and future careers in software development. Your support is key to helping students  navigate this journey successfully.`;
 
     const { ChatPromptTemplate, MessagesPlaceholder } = await dynamicImport(
       '@langchain/core/prompts',

@@ -24,6 +24,7 @@
     "compodoc": "npx @compodoc/compodoc --theme readthedocs -p tsconfig.json -s -w"
   },
   "dependencies": {
+    "@getzep/zep-js": "2.0.0-rc.2",
     "@langchain/community": "^0.0.26",
     "@langchain/core": "0.1.12",
     "@langchain/openai": "^0.0.11",

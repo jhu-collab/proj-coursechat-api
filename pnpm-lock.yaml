@@ -8,9 +8,12 @@ overrides:
   '@langchain/core': 0.1.12
 
 dependencies:
+  '@getzep/zep-js':
+    specifier: 2.0.0-rc.2
+    version: 2.0.0-rc.2(@langchain/core@0.1.12)
   '@langchain/community':
     specifier: ^0.0.26
-    version: 0.0.26(@upstash/redis@1.28.3)(pg@8.11.3)(typeorm@0.3.17)
+    version: 0.0.26(@getzep/zep-js@2.0.0-rc.2)(@upstash/redis@1.28.3)(pg@8.11.3)(typeorm@0.3.17)
   '@langchain/core':
     specifier: 0.1.12
     version: 0.1.12
@@ -58,7 +61,7 @@ dependencies:
     version: 7.0.0
   langchain:
     specifier: ^0.1.2
-    version: 0.1.2(@upstash/redis@1.28.3)(pg@8.11.3)(typeorm@0.3.17)
+    version: 0.1.2(@getzep/zep-js@2.0.0-rc.2)(@upstash/redis@1.28.3)(pg@8.11.3)(typeorm@0.3.17)
   langsmith:
     specifier: 0.0.69-rc0.0
     version: 0.0.69-rc0.0
@@ -1948,6 +1951,18 @@ packages:
     resolution: {integrity: sha512-59SgoZ3EXbkfSX7b63tsou/SDGzwUEK6MuB5sKqgVK1/XE0fxmpsOb9DQI8LXW3KfGnAjImCGhhEb7uPPAUVNA==}
     dev: true
 
+  /@getzep/zep-js@2.0.0-rc.2(@langchain/core@0.1.12):
+    resolution: {integrity: sha512-4dP23JTcZ0ChH8M1nSZLyoFpASGgzmxTsBwMnZERs5CZlR3haZCWbio9SiB2m8t4b4evPWs1C1wUgLqbamn9rw==}
+    engines: {node: '>=18.0.0'}
+    peerDependencies:
+      '@langchain/core': 0.1.12
+    dependencies:
+      '@langchain/core': 0.1.12
+      '@supercharge/promise-pool': 3.1.1
+      semver: 7.5.4
+      typescript: 5.2.2
+    dev: false
+
   /@humanwhocodes/config-array@0.11.11:
     resolution: {integrity: sha512-N2brEuAadi0CcdeMXUkhbZB84eskAc8MEX1By6qEchoVywSgXPIjou4rYsl0V3Hj0ZnuGycGCjdNgockbzeWNA==}
     engines: {node: '>=10.10.0'}
@@ -2251,7 +2266,7 @@ packages:
       '@jridgewell/resolve-uri': 3.1.1
       '@jridgewell/sourcemap-codec': 1.4.15
 
-  /@langchain/community@0.0.26(@upstash/redis@1.28.3)(pg@8.11.3)(typeorm@0.3.17):
+  /@langchain/community@0.0.26(@getzep/zep-js@2.0.0-rc.2)(@upstash/redis@1.28.3)(pg@8.11.3)(typeorm@0.3.17):
     resolution: {integrity: sha512-E5/lltEkkRCxA9WQ/IpdTWUBj5gaCOYuf6r2MX4ZNTR5gfaZkHdLQWF1rew6uG3Z7XjRMMtIxxT9jS7me6sRRA==}
     engines: {node: '>=18'}
     peerDependencies:
@@ -2500,6 +2515,7 @@ packages:
       ws:
         optional: true
     dependencies:
+      '@getzep/zep-js': 2.0.0-rc.2(@langchain/core@0.1.12)
       '@langchain/core': 0.1.12
       '@langchain/openai': 0.0.11
       '@upstash/redis': 1.28.3
@@ -2884,6 +2900,11 @@ packages:
 
   /@sqltools/formatter@1.2.5:
     resolution: {integrity: sha512-Uy0+khmZqUrUGm5dmMqVlnvufZRSK0FbYzVgp0UMstm+F5+W2/jnEEQyc9vo1ZR/E5ZI/B1WjjoTqBqwJL6Krw==}
+    dev: false
+
+  /@supercharge/promise-pool@3.1.1:
+    resolution: {integrity: sha512-TgCm6jVqMPv+OgD5uBNND/CkCwNDdXPQlcprtnXsWSBpTCy0q5CI6vRj+jsUiXE1xeRaKIX4UeaYJqzZBL92sg==}
+    engines: {node: '>=8'}
     dev: false
 
   /@thednp/event-listener@2.0.4:
@@ -6532,7 +6553,7 @@ packages:
     engines: {node: '>=6'}
     dev: true
 
-  /langchain@0.1.2(@upstash/redis@1.28.3)(pg@8.11.3)(typeorm@0.3.17):
+  /langchain@0.1.2(@getzep/zep-js@2.0.0-rc.2)(@upstash/redis@1.28.3)(pg@8.11.3)(typeorm@0.3.17):
     resolution: {integrity: sha512-sJbVvIabjmsKDsIdfSiojHOg1EXbVsuVH6Y12rproGwYNRdQZ5zhikW+RttuRSmmEfCVfaGV5++nzYes9/jVAg==}
     engines: {node: '>=18'}
     peerDependencies:
@@ -6695,7 +6716,7 @@ packages:
         optional: true
     dependencies:
       '@anthropic-ai/sdk': 0.9.1
-      '@langchain/community': 0.0.26(@upstash/redis@1.28.3)(pg@8.11.3)(typeorm@0.3.17)
+      '@langchain/community': 0.0.26(@getzep/zep-js@2.0.0-rc.2)(@upstash/redis@1.28.3)(pg@8.11.3)(typeorm@0.3.17)
       '@langchain/core': 0.1.12
       '@langchain/openai': 0.0.11
       binary-extensions: 2.2.0
@@ -6897,7 +6918,6 @@ packages:
     engines: {node: '>=10'}
     dependencies:
       yallist: 4.0.0
-    dev: true
 
   /lru-cache@9.1.2:
     resolution: {integrity: sha512-ERJq3FOzJTxBbFjZ7iDs+NiK4VI9Wz+RdrrAB8dio1oV+YvdPzUEE4QNiT2VD51DkIbCYRUUzCRkssXCHqSnKQ==}
@@ -8110,7 +8130,6 @@ packages:
     hasBin: true
     dependencies:
       lru-cache: 6.0.0
-    dev: true
 
   /send@0.18.0:
     resolution: {integrity: sha512-qqWzuOjSFOuqPjFe4NOsMLafToQQwBSOEpS+FwEt3A2V3vKubTquT3vmLTQpFgMXp8AlFWFuP1qKaJZOtPpVXg==}
@@ -9231,7 +9250,6 @@ packages:
 
   /yallist@4.0.0:
     resolution: {integrity: sha512-3wdGidZyq5PB084XLES5TpOSRA3wjXAlIWMhum2kRcv/41Sn2emQ0dycQW4uZXLejwKvg6EsvbdlVL+FYEct7A==}
-    dev: true
 
   /yaml@1.10.2:
     resolution: {integrity: sha512-r3vXyErRCYJ7wg28yvBY5VSoAF8ZvlcW9/BwUzEtUsjvX/DKs24dIkuwjtuprwJJHsbyUbLApepYTR1BN4uHrg==}

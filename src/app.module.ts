@@ -29,6 +29,9 @@ import { validate } from './env.validation';
 import { DevtoolsModule } from '@nestjs/devtools-integration';
 import { AtlasService } from './ai-services/assistant-90-atlas-service';
 import { SocratesService } from './ai-services/assistant-91-socrates-service';
+import { AtlasServiceV2 } from './ai-services/assistant-92-atlas-service';
+import { LangSmithModule } from './ai-services/langsmith.module';
+import { SocratesServiceV2 } from './ai-services/assistant-93-socrates-service';
 
 @Module({
   imports: [
@@ -58,6 +61,7 @@ import { SocratesService } from './ai-services/assistant-91-socrates-service';
       inject: [ConfigService],
     }),
     TypeOrmModule.forFeature([Chat, Message, ApiKey, Assistant]),
+    LangSmithModule.forRoot(),
   ],
   controllers: [
     AppController,
@@ -82,6 +86,8 @@ import { SocratesService } from './ai-services/assistant-91-socrates-service';
     FinchService,
     AtlasService,
     SocratesService,
+    AtlasServiceV2,
+    SocratesServiceV2,
   ],
 })
 export class AppModule {

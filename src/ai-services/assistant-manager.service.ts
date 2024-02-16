@@ -12,6 +12,8 @@ import { MementoService } from './assistant-04-memento.service';
 import { FinchService } from './assistant-05-finch.service';
 import { AtlasService } from './assistant-90-atlas-service';
 import { SocratesService } from './assistant-91-socrates-service';
+import { AtlasServiceV2 } from './assistant-92-atlas-service';
+import { SocratesServiceV2 } from './assistant-93-socrates-service';
 
 /**
  * Service managing different AI assistants.
@@ -40,6 +42,8 @@ export class AssistantManagerService {
    * @param {FinchService} finchService - The finch AI service.
    * @param {AtlasService} atlasService - The Atlas AI service.
    * @param {SocratesService} socratesService - The Socrates AI service.
+   * @param {AtlasServiceV2} atlas2Service - The Atlas-V2 AI service.
+   * @param {SocratesServiceV2} socrates2Service - The Socrates-V2 AI service.
    */
   constructor(
     private readonly assistantService: AssistantService,
@@ -51,6 +55,8 @@ export class AssistantManagerService {
     private finchService: FinchService,
     private atlasService: AtlasService,
     private socratesService: SocratesService,
+    private atlas2Service: AtlasServiceV2,
+    private socrates2Service: SocratesServiceV2,
   ) {}
 
   /**
@@ -67,6 +73,8 @@ export class AssistantManagerService {
     this.assistants.set('finch', this.finchService);
     this.assistants.set('Atlas', this.atlasService);
     this.assistants.set('Socrates', this.socratesService);
+    this.assistants.set('Atlas-V2', this.atlas2Service);
+    this.assistants.set('Socrates-V2', this.socrates2Service);
 
     await this.synchronizeWithServices();
     this.logger.log('Synchronized AI services with the database.');
